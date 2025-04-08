@@ -1,0 +1,145 @@
+.navbar {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  list-style-type: none;
+  margin: 0;
+}
+
+.navbar a {
+  color: rgb(85, 85, 85);
+  text-decoration: none;
+  font-size: 18px;
+  display: block;
+  padding: 10px 0;
+}
+.navbar li {
+  width: 150px;
+}
+
+.navbar a:hover {
+  /* text-decoration: underline; */
+  color: rgb(10, 192, 243);
+}
+
+.sidebar {
+  top: 0;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  --tw-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --tw-shadow-colored: 0 1px 3px 0 var(--tw-shadow-color),
+    0 1px 2px -1px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000),
+    var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+  background-color: rgba(255, 255, 255, 0.805); /* Lớp phủ mờ màu đen */
+  position: fixed;
+  z-index: 2;
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  height: 45px;
+  margin-right: 10px;
+}
+
+.logoText {
+  font-size: 20px;
+  font-weight: bold;
+  color: #01aac1;
+  display: block;
+}
+.navbar a svg {
+  display: none;
+}
+
+.navbar a.active {
+  color: #007bff; /* Màu chữ khi active */
+  font-weight: bold; /* Chữ đậm khi active */
+}
+
+.calendarItem {
+  position: relative;
+}
+
+.badge {
+  position: absolute;
+  top: 2px;
+  right: 100px;
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    flex-direction: column;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 80px;
+    background-color: #ffffff;
+    padding: 1rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    height: 100vh;
+    overflow-y: auto;
+    justify-content: flex-start;
+  }
+
+  .badge {
+    right: -5px;
+    top: -10px;
+  }
+
+  .logo {
+    margin-bottom: 1rem;
+  }
+
+  .navbar {
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    background-color: transparent;
+    width: 100%;
+  }
+
+  .navbar li {
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+
+  .navbar li {
+    width: fit-content;
+  }
+
+  .navbar a {
+    font-size: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem;
+  }
+
+  .navbar a span {
+    margin-top: 0.25rem;
+  }
+  .navbar a svg {
+    display: inline;
+  }
+  .logoText {
+    display: none;
+  }
+}
