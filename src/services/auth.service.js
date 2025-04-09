@@ -61,23 +61,39 @@ const register = async (name, email, password, confirmPassword) => {
   }
 };
 
-const login = async (email, password) => {
-  const response = await axios.post(API_URL + "login", {
-    email,
-    password
-  });
-  if (response.data.token) {
-    localStorage.setItem("user", JSON.stringify(response.data.token)); // Lưu thông tin người dùng vào localStorage
+const login = async (email, password, remember = false) => {
+  try {
+    localStorage.removeItem("user");
+    sessionStorage.removeItem("user");
+    const response = await axios.post(API_URL + "login", {
+      email,
+      password,
+      remember
+    });
+
+    const token = response?.data?.token; // hoặc accessToken
+    if (token) {
+      localStorage.setItem("user", JSON.stringify(token));
+    } else {
+      console.warn("Không có token để lưu!");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi login:", error);
+    throw error;
   }
-  return response.data;
 };
 
 const logout = async () => {
-  const token = localStorage.getItem("user");
+  const token = localStorage.getItem("user")
+    ? localStorage.getItem("user")
+    : sessionStorage.getItem("user");
   if (token) {
     try {
       await axios.post(API_URL + "logout", {}, { headers: authHeader() });
       localStorage.removeItem("user");
+      sessionStorage.removeItem("user");
       return { success: true };
     } catch (error) {
       console.error("Logout failed:", error);
@@ -87,7 +103,9 @@ const logout = async () => {
 };
 
 const getCurrentUser = async () => {
-  const token = localStorage.getItem("user");
+  const token = localStorage.getItem("user")
+    ? localStorage.getItem("user")
+    : sessionStorage.getItem("user");
   if (!token) {
     console.log("Không tìm thấy token trong localStorage");
     return null; // Trả về null nếu không có token
@@ -106,7 +124,9 @@ const getCurrentUser = async () => {
 };
 
 const getAvatar = async () => {
-  const token = localStorage.getItem("user");
+  const token = localStorage.getItem("user")
+    ? localStorage.getItem("user")
+    : sessionStorage.getItem("user");
   if (token) {
     try {
       const response = await axios.get(API_URL + "profile/image", {

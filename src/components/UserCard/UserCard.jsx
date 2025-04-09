@@ -12,47 +12,80 @@ import socket from "../../configs/socket/socket";
 
 function UserCard({ avatar, name, address, skills, userid }) {
   const navigate = useNavigate();
-  const [chatRoomId, setChatRoomId] = useState(null);
+  const [state, setState] = useState({
+    chatRoomId: null,
+    connectionStatus: null,
+    connectionId: null,
+    isReceivedRequest: false,
+    userIds: [],
+    isModalOpen: false,
+    isLoading: false
+  });
 
-  const [connectionStatus, setConnectionStatus] = useState(null); // "pending_sent", "pending_received", "connected", "none"
-  const [connectionId, setConnectionId] = useState(null);
-  const [isReceivedRequest, setIsReceivedRequest] = useState(false);
-  const [userIds, setUserIds] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false); // State cho modal
+  // Hàm helper để fetch với error handling
+  const fetchWithErrorHandling = async (fetchFn, errorMessage, signal) => {
+    try {
+      const response = await fetchFn({ signal });
+      return response.data;
+    } catch (error) {
+      if (!signal.aborted) console.error(errorMessage, error);
+      throw error;
+    }
+  };
 
   useEffect(() => {
-    const fetchConnectionStatus = async () => {
-      try {
-        const response = await connectionService.checkConnectionStatus(userid);
-        setConnectionStatus(response.data.status);
-        setConnectionId(response.data.connectionId || null);
-        setIsReceivedRequest(response.data.received);
+    const controller = new AbortController();
+    const signal = controller.signal;
 
-        setChatRoomId(response.data.chatRoomId || null);
+    const fetchAllData = async () => {
+      if (!userid) return;
+
+      setState((prev) => ({ ...prev, isLoading: true }));
+
+      try {
+        const [connectionData, userIdsData] = await Promise.all([
+          fetchWithErrorHandling(
+            () => connectionService.checkConnectionStatus(userid),
+            "Error checking connection status:",
+            signal
+          ),
+          fetchWithErrorHandling(
+            () => userService.getUserIDs(),
+            "Error fetching user IDs:",
+            signal
+          )
+        ]);
+
+        setState((prev) => ({
+          ...prev,
+          connectionStatus: connectionData?.status || null,
+          connectionId: connectionData?.connectionId || null,
+          isReceivedRequest: connectionData?.received || false,
+          chatRoomId: connectionData?.chatRoomId || null,
+          userIds: userIdsData?.userIds || [],
+          isLoading: false
+        }));
       } catch (error) {
-        console.error("Error checking connection status:", error);
+        if (!signal.aborted) {
+          setState((prev) => ({ ...prev, isLoading: false }));
+        }
       }
     };
-    fetchConnectionStatus();
+
+    fetchAllData();
+
+    return () => controller.abort();
   }, [userid]);
 
-  useEffect(() => {
-    const fetchUserIds = async () => {
-      try {
-        const UserIds = await userService.getUserIDs();
-        setUserIds(UserIds.data?.userIds || []);
-      } catch (error) {
-        console.error("Error fetching user IDs:", error);
-      }
-    };
-    fetchUserIds();
-  }, []);
-
+  // Các handler giữ nguyên, chỉ cập nhật state mới
   const handleConnect = async () => {
     try {
       await connectionService.sendRequest(userid);
-      setConnectionStatus("pending_sent"); // Cập nhật UI ngay lập tức
-      setIsReceivedRequest(false);
+      setState((prev) => ({
+        ...prev,
+        connectionStatus: "pending_sent",
+        isReceivedRequest: false
+      }));
     } catch (error) {
       console.error("Error sending request:", error);
     }
@@ -61,7 +94,7 @@ function UserCard({ avatar, name, address, skills, userid }) {
   const handleCancelRequest = async () => {
     try {
       await connectionService.cancelRequest(userid);
-      setConnectionStatus("none"); // Cập nhật UI ngay lập tức
+      setState((prev) => ({ ...prev, connectionStatus: "none" }));
     } catch (error) {
       console.error("Error canceling request:", error);
     }
@@ -69,9 +102,12 @@ function UserCard({ avatar, name, address, skills, userid }) {
 
   const handleAcceptRequest = async () => {
     try {
-      await connectionService.acceptRequest(connectionId);
-      setConnectionStatus("connected");
-      setIsReceivedRequest(false); // Cập nhật UI ngay lập tức
+      await connectionService.acceptRequest(state.connectionId);
+      setState((prev) => ({
+        ...prev,
+        connectionStatus: "connected",
+        isReceivedRequest: false
+      }));
     } catch (error) {
       console.error("Error accepting request:", error);
     }
@@ -79,70 +115,59 @@ function UserCard({ avatar, name, address, skills, userid }) {
 
   const handleRejectRequest = async () => {
     try {
-      await connectionService.rejectRequest(connectionId);
-      setConnectionStatus("none"); // Cập nhật UI ngay lập tức
-      setIsReceivedRequest(false);
-      setConnectionId(null);
+      await connectionService.rejectRequest(state.connectionId);
+      setState((prev) => ({
+        ...prev,
+        connectionStatus: "none",
+        isReceivedRequest: false,
+        connectionId: null
+      }));
     } catch (error) {
       console.error("Error rejecting request:", error);
     }
   };
 
   const handleChat = () => {
-    if (chatRoomId) {
-      navigate(`/chat/${chatRoomId}/${userid}/${name}`); // Chuyển đến phòng chat tương ứng
+    if (state.chatRoomId) {
+      navigate(`/chat/${state.chatRoomId}/${userid}/${name}`);
     } else {
       console.error("Không tìm thấy chatRoomId!");
     }
   };
 
-  const isConnected = userIds.includes(userid);
-
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
+  const handleOpenModal = () =>
+    setState((prev) => ({ ...prev, isModalOpen: true }));
+  const handleCloseModal = () =>
+    setState((prev) => ({ ...prev, isModalOpen: false }));
 
   const handleAppointmentSubmit = async (appointmentData) => {
     try {
       const requestData = {
-        receiverId: userid, // Sử dụng userid từ props
-        startTime: new Date(appointmentData.startTime).toISOString(), // Chuyển đổi thành ISO string
-        endTime: new Date(appointmentData.endTime).toISOString(), // Chuyển đổi thành ISO string
+        receiverId: userid,
+        startTime: new Date(appointmentData.startTime).toISOString(),
+        endTime: new Date(appointmentData.endTime).toISOString(),
         description: appointmentData.description
       };
       const response = await appointmentService.createAppointment(requestData);
 
       if (response) {
         socket.emit("send-notify-book-appointment", requestData.receiverId);
-        Toast.fire({
-          icon: "success",
-          title: response.message
-        });
-        setIsModalOpen(false);
+        Toast.fire({ icon: "success", title: response.message });
       } else {
-        Toast.fire({
-          icon: "error",
-          title: response.message
-        });
+        Toast.fire({ icon: "error", title: response.message });
       }
     } catch (error) {
       console.error("Lỗi khi tạo lịch hẹn:", error);
     } finally {
-      setIsModalOpen(false);
+      setState((prev) => ({ ...prev, isModalOpen: false }));
     }
   };
+
+  const isConnected = state.userIds.includes(userid);
   return (
     <div className={styles.card}>
       <div className={styles.cardTop}>
-        <img
-          src={avatar.data?.image}
-          alt={name}
-          className={styles.cardAvatar}
-        />
+        <img src={avatar} alt={name} className={styles.cardAvatar} />
       </div>
 
       <div className={styles.cardContent}>
@@ -154,7 +179,7 @@ function UserCard({ avatar, name, address, skills, userid }) {
           Địa chỉ: <span>{address}</span>
         </p>
 
-        {connectionStatus === "connected" ? (
+        {state.connectionStatus === "connected" ? (
           <div className={styles.chat}>
             <button className={styles.connectButton} onClick={handleOpenModal}>
               Đặt lịch
@@ -163,14 +188,14 @@ function UserCard({ avatar, name, address, skills, userid }) {
               Nhắn tin
             </button>
           </div>
-        ) : connectionStatus === "pending_sent" ? (
+        ) : state.connectionStatus === "pending_sent" ? (
           <button
             className={styles.connectButton}
             onClick={handleCancelRequest}
           >
             Hủy yêu cầu
           </button>
-        ) : connectionStatus === "pending_received" ? (
+        ) : state.connectionStatus === "pending_received" ? (
           <div className={styles.chat}>
             <button
               className={styles.connectButton}
@@ -194,7 +219,7 @@ function UserCard({ avatar, name, address, skills, userid }) {
 
       {/* Hiển thị modal nếu isModalOpen là true */}
       <CreateAppointmentForm
-        isOpen={isModalOpen}
+        isOpen={state.isModalOpen}
         onClose={handleCloseModal}
         onSubmit={handleAppointmentSubmit}
       />
