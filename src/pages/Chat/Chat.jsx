@@ -6,24 +6,31 @@ import { useParams } from "react-router-dom";
 import userService from "../../services/user.service";
 import chatService from "../../services/chat.service";
 import authService from "../../services/auth.service";
-
 import iconcamera from "../../assets/ic_camera.svg";
 import iconImage from "../../assets/ic_image.svg";
 import iconAttach from "../../assets/ic_attach.svg";
 import iconSend from "../../assets/ic_send.svg";
+import { IoCloseCircle } from "react-icons/io5";
+import { FaFilePdf, FaFileWord } from "react-icons/fa";
 import "./Chat.css";
-
-import socket, {
-  joinChatRoom,
-  setUserOnline,
-  checkUserStatus,
-  cleanupSocket
-} from "../../configs/socket/socket"; // Import from socket.config
+import socket, { joinChatRoom, setUserOnline, checkUserStatus, cleanupSocket } from "../../configs/socket/socket";
 import Loading from "../../components/Loading";
-import { FaFilePdf } from "react-icons/fa";
 import { MdOutlineReport } from "react-icons/md";
 import reportService from "../../services/report.service";
 import Toast from "../../utils/Toast";
+
+const getFileIconAndType = (fileName) => {
+  const extension = fileName.split(".").pop().toLowerCase();
+  switch (extension) {
+    case "pdf":
+      return { icon: <FaFilePdf size={24} color="#FF5733" />, type: "Tệp PDF" };
+    case "doc":
+    case "docx":
+      return { icon: <FaFileWord size={24} color="#2B579A" />, type: "Tệp Word" };
+    default:
+      return { icon: <FaFilePdf size={24} color="#FF5733" />, type: "Tệp không xác định" }; // Mặc định
+  }
+};
 
 const ChatRoom = () => {
   const { chatRoomId, userid, name } = useParams();
@@ -31,22 +38,26 @@ const ChatRoom = () => {
   const [message, setMessage] = useState("");
   const [user, setUser] = useState(null);
   const [onlineStatus, setOnlineStatus] = useState("offline");
-  const [photos, setPhotos] = useState(null); // Avatar của người nhận
+  const [photos, setPhotos] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const chatBoxRef = useRef(null);
+  const observerRef = useRef(null);
   const [errorMessage, setErrorMessage] = useState("");
   const imageInputRef = useRef(null);
   const fileInputRef = useRef(null);
-  const [selectedImage, setSelectedImage] = useState(null); // Để lưu ảnh đã chọn
-  const [selectedFile, setSelectedFile] = useState(null); // Để lưu file đã chọn
-  const [isModalOpen, setIsModalOpen] = useState(false); // State để mở/đóng modal
-  const [reportReason, setReportReason] = useState(""); // Lý do báo cáo
-  const [reportStatus, setReportStatus] = useState(""); // Trạng thái báo cáo
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportStatus, setReportStatus] = useState("");
 
+  // Tải 50 tin nhắn cuối khi khởi tạo
   useEffect(() => {
     let isMounted = true;
 
-    const fetchMessages = async () => {
+    const fetchInitialData = async () => {
       try {
         const currentUser = await authService.getCurrentUser();
         const userData = currentUser?.data?.user;
@@ -60,41 +71,38 @@ const ChatRoom = () => {
           socket.on("userStatusResponse", ({ userId, status }) => {
             if (userId === userid) setOnlineStatus(status);
           });
-
-          const data = await chatService.getMessages(chatRoomId);
-          setMessages((prev) => {
-            const messageIds = new Set(prev.map((msg) => msg._id));
-            const newMessages = data.data.messages.filter(
-              (msg) => !messageIds.has(msg._id)
-            );
-            return [...newMessages.reverse(), ...prev];
-          });
-
-          socket.on("receiveMessage", (newMessage) => {
-            setMessages((prevMessages) => {
-              const exists = prevMessages.some(
-                (msg) => msg._id === newMessage._id
-              );
-              if (!exists) return [...prevMessages, newMessage];
-              return prevMessages;
-            });
-          });
-
           socket.on("onlineStatusUpdate", ({ userId, status }) => {
             if (userId === userid) setOnlineStatus(status);
+          });
+
+          // Lấy 50 tin nhắn cuối
+          const result = await chatService.getMessages(chatRoomId, 1, 50);
+          console.log("Tin nhắn trang 1:", result.data);
+          setMessages(result.data.reverse()); // Đảo ngược để hiển thị cũ -> mới
+          setHasMore(result.pagination.currentPage < result.pagination.totalPages);
+
+          socket.on("newMessage", (newMessage) => {
+            console.log("Tin nhắn mới từ Socket.IO:", newMessage);
+            setMessages((prevMessages) => {
+              const exists = prevMessages.some((msg) => msg.id === newMessage.id);
+              if (!exists && newMessage.chatRoomId === chatRoomId) {
+                return [...prevMessages, newMessage];
+              }
+              return prevMessages;
+            });
           });
 
           setLoading(false);
         }
       } catch (error) {
-        console.error("Error fetching messages:", error);
-        setErrorMessage("Không thể lấy tin nhắn. Vui lòng thử lại sau.");
+        console.error("Lỗi khi lấy dữ liệu ban đầu:", error);
+        setErrorMessage("Không thể tải dữ liệu. Vui lòng thử lại sau.");
       } finally {
         if (isMounted) setLoading(false);
       }
     };
 
-    fetchMessages();
+    fetchInitialData();
 
     return () => {
       isMounted = false;
@@ -102,6 +110,50 @@ const ChatRoom = () => {
     };
   }, [chatRoomId, userid]);
 
+  // Tải thêm tin nhắn khi scroll lên trên
+  useEffect(() => {
+    if (!chatBoxRef.current || !hasMore || loading) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMoreMessages();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const firstMessage = chatBoxRef.current.querySelector(".message:first-child");
+    if (firstMessage) observer.observe(firstMessage);
+
+    observerRef.current = observer;
+
+    return () => {
+      if (observerRef.current) observerRef.current.disconnect();
+    };
+  }, [messages, hasMore, loading]);
+
+  const loadMoreMessages = async () => {
+    if (loading || !hasMore) return;
+
+    setLoading(true);
+    try {
+      const nextPage = page + 1;
+      const result = await chatService.getMessages(chatRoomId, nextPage, 50);
+      console.log(`Tin nhắn trang ${nextPage}:`, result.data);
+      const newMessages = result.data.reverse(); // Đảo ngược để thêm vào đầu
+      setMessages((prev) => [...newMessages, ...prev]);
+      setPage(nextPage);
+      setHasMore(result.pagination.currentPage < result.pagination.totalPages);
+    } catch (error) {
+      console.error("Lỗi khi tải thêm tin nhắn:", error);
+      setErrorMessage("Không thể tải thêm tin nhắn.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cuộn xuống dưới khi có tin nhắn mới
   useEffect(() => {
     if (chatBoxRef.current) {
       chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
@@ -109,26 +161,24 @@ const ChatRoom = () => {
   }, [messages]);
 
   const sendMessage = async () => {
-    if (!message.trim() && !selectedImage && !selectedFile) return; // Không gửi nếu không có gì
+    if (!message.trim() && !selectedImage && !selectedFile) return;
 
     try {
       const formData = new FormData();
-      formData.append("chatRoomId", chatRoomId); // Thêm chatRoomId vào FormData
-      if (message.trim()) {
-        formData.append("content", message);
-      }
+      formData.append("chatRoomId", chatRoomId);
+      if (message.trim()) formData.append("content", message);
       if (selectedImage) {
-        formData.append("image", selectedImage); // Gửi ảnh nếu có
+        console.log("Gửi hình ảnh:", selectedImage);
+        formData.append("image", selectedImage);
       }
-      if (selectedFile) {
-        formData.append("file", selectedFile); // Gửi file nếu có
-      }
-      const data = await chatService.sendMessage(formData);
+      if (selectedFile) formData.append("file", selectedFile);
+
+      await chatService.sendMessage(formData);
       setMessage("");
       setSelectedImage(null);
       setSelectedFile(null);
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("Lỗi khi gửi tin nhắn:", error);
       setErrorMessage("Không thể gửi tin nhắn. Vui lòng thử lại sau.");
     }
   };
@@ -170,19 +220,16 @@ const ChatRoom = () => {
     fileInputRef.current.click();
   };
 
-  // Mở modal khi nhấn nút Report
   const openReportModal = () => {
     setIsModalOpen(true);
-    setReportReason(""); // Reset lý do khi mở modal
-    setReportStatus(""); // Reset trạng thái
+    setReportReason("");
+    setReportStatus("");
   };
 
-  // Đóng modal
   const closeReportModal = () => {
     setIsModalOpen(false);
   };
 
-  // Xử lý submit báo cáo
   const handleReportSubmit = async () => {
     if (!reportReason.trim()) {
       setReportStatus("Vui lòng chọn lý do báo cáo.");
@@ -190,24 +237,15 @@ const ChatRoom = () => {
     }
 
     try {
-      const reportData = {
-        userId: userid,
-        reason: reportReason
-      };
-      await reportService.createReport(reportData); // Gọi API báo cáo
-      Toast.fire({
-        icon: "success",
-        title: "Báo cáo đã được gửi thành công!"
-      });
+      const reportData = { userId: userid, reason: reportReason };
+      await reportService.createReport(reportData);
+      Toast.fire({ icon: "success", title: "Báo cáo đã được gửi thành công!" });
       setTimeout(() => {
         setIsModalOpen(false);
         setReportStatus("");
-      }, 1000); // Đóng modal sau 2 giây
+      }, 1000);
     } catch (error) {
-      Toast.fire({
-        icon: "error",
-        title: "Không thể gửi báo cáo. Vui lòng thử lại sau."
-      });
+      Toast.fire({ icon: "error", title: "Không thể gửi báo cáo. Vui lòng thử lại sau." });
     }
   };
 
@@ -224,7 +262,7 @@ const ChatRoom = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          zIndex: 1
+          zIndex: 1,
         }}
       >
         <Loading />
@@ -237,11 +275,7 @@ const ChatRoom = () => {
       <div className="chat-container">
         <div className="header-chat">
           <div className="user-info">
-            <img
-              className="avatar"
-              src={photos || "default"}
-              alt="User Avatar"
-            />
+            <img className="avatar" src={photos || "default"} alt="User Avatar" />
             <div className="user-details">
               <div className="user-name">{name || "User"}</div>
               <div className={`user-status ${onlineStatus}`}>
@@ -253,7 +287,7 @@ const ChatRoom = () => {
             <button
               className="video-button mr-2"
               style={{ backgroundColor: "yellow" }}
-              onClick={openReportModal} // Mở modal khi nhấn Report
+              onClick={openReportModal}
             >
               <MdOutlineReport size={24} color="black" />
             </button>
@@ -263,57 +297,82 @@ const ChatRoom = () => {
             </button>
           </div>
         </div>
-
         <div className="body-chat" ref={chatBoxRef}>
-          {loading ? <p>Loading messages...</p> : null}
-          {messages.map((message) => (
-            <div
-              key={message._id}
-              className={`message ${
-                message.sender._id === (user.id || user._id)
-                  ? "message-right"
-                  : "message-left"
-              }`}
-            >
-              {message.sender._id !== (user.id || user._id) && (
-                <img
-                  className="avatar"
-                  src={photos || "default"}
-                  alt="Receiver Avatar"
-                />
-              )}
-              <div className="message-content">
-                <div className="message-text">
-                  {message.content}
+          {loading && <p>Đang tải tin nhắn...</p>}
+          {Array.isArray(messages) && messages.length > 0 ? (
+            messages.map((message) => (
+              <div
+                key={message.id}
+                className={`message ${
+                  message.senderId === (user.id || user._id)
+                    ? "message-right"
+                    : "message-left"
+                }`}
+              >
+                {message.senderId !== (user.id || user._id) && (
+                  <img
+                    className="avatar"
+                    src={photos || "default"}
+                    alt="Receiver Avatar"
+                  />
+                )}
+                <div className="message-content">
+                  {(message.content || message.message) && (
+                    <div className="message-text">
+                      {message.content || message.message}
+                    </div>
+                  )}
                   {message.image && (
-                    <img
-                      src={message.image}
-                      alt="Hình ảnh"
-                      style={{ maxWidth: "200px" }}
-                    />
+                    <div className="message-image">
+                      <img
+                        src={message.image.url || message.image}
+                        alt="Hình ảnh"
+                        style={{ maxWidth: "200px", borderRadius: "8px" }}
+                        onError={(e) => {
+                          console.log("Lỗi tải hình ảnh:", message.image);
+                          e.target.style.display = "none";
+                          e.target.nextSibling.style.display = "block";
+                        }}
+                        onLoad={() => console.log("Hình ảnh đã tải:", message.image)}
+                      />
+                      <span style={{ display: "none", color: "red" }}>
+                        Không thể tải hình ảnh
+                      </span>
+                    </div>
                   )}
                   {message.file && (
                     <a
-                      className="message-file"
-                      href={message.file}
+                      href={message.file.url || message.file}
                       target="_blank"
                       rel="noopener noreferrer"
-                      download="file.pdf"
+                      className="message-file-container"
+                      download = {message.file.name || message.file.url.split("/").pop()}
                     >
-                      <FaFilePdf size={64} />
+                      <div className="file-preview">
+                        <FaFilePdf size={32} color="#FF5733" />
+                        <div className="file-info">
+                          <span className="file-name">
+                          {message.file.name || message.file.url.split("/").pop() || "Tệp không tên"}
+                          </span>
+                          <span className="file-size">{getFileIconAndType(message.file.name || message.file.url).type}</span>
+                        </div>
+                      </div>
                     </a>
                   )}
+                  <small>
+                    {new Date(
+                      message.created_at || message.timestamp || Date.now()
+                    ).toLocaleTimeString("vi-VN", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </small>
                 </div>
-
-                <small>
-                  {new Date(message.createdAt || Date.now()).toLocaleTimeString(
-                    "vi-VN",
-                    { hour: "2-digit", minute: "2-digit" }
-                  )}
-                </small>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p>Không có tin nhắn nào.</p>
+          )}
         </div>
 
         <div className="footer-chat">
@@ -338,41 +397,60 @@ const ChatRoom = () => {
               onChange={handleFileChange}
               ref={fileInputRef}
             />
-
             <div className="message-input-wrapper">
-              <input
-                type="text"
-                className="message-input"
-                rows="2"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Nhập tin nhắn..."
-                onKeyDown={handleKeyDown}
-              />
+              <div className="message-input-container">
+                {selectedImage && (
+                  <div className="selected-image-container">
+                    <img
+                      src={URL.createObjectURL(selectedImage)}
+                      alt="Ảnh đã chọn"
+                      className="selected-image"
+                    />
+                    <IoCloseCircle
+                      className="remove-image"
+                      onClick={() => setSelectedImage(null)}
+                    />
+                  </div>
+                )}
+                {selectedFile && (
+                  <div className="selected-preview">
+                    <div className="file-preview">
+                      <FaFilePdf size={24} color="#FF5733" />
+                      <div className="file-info">
+                        <span className="file-name">
+                          {selectedFile.name || "Tệp không tên"}
+                        </span>
+                        <span className="file-size">
+                          {getFileIconAndType(selectedFile.name).type}
+                          {" - " + (selectedFile.size / 1024).toFixed(1) + " KB"}
+                          {/* {(selectedFile.size / 1024).toFixed(1)} KB */}
+                        </span>
+                      </div>
+                    </div>
+                    <IoCloseCircle
+                      className="remove-preview"
+                      onClick={() => setSelectedFile(null)}
+                    />
+                  </div>
+                )}
+                <input
+                  type="text"
+                  className="message-input"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Nhập tin nhắn..."
+                  onKeyDown={handleKeyDown}
+                />
+              </div>
             </div>
 
             <button className="send-button" onClick={sendMessage}>
               <img src={iconSend} alt="Send Icon" />
             </button>
           </div>
-          {/* Hiển thị ảnh và file đã chọn  */}
-          {selectedImage && (
-            <div>
-              <img
-                src={URL.createObjectURL(selectedImage)}
-                alt="Ảnh đã chọn"
-                style={{ maxWidth: "100px", marginTop: "5px" }}
-              />
-            </div>
-          )}
-          {selectedFile && (
-            <div>
-              <p>Đã chọn file: {selectedFile.name}</p>
-            </div>
-          )}
         </div>
       </div>
-      {/* Modal báo cáo */}
+
       <Modal
         isOpen={isModalOpen}
         onRequestClose={closeReportModal}

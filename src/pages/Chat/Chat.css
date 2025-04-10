@@ -171,88 +171,41 @@
   padding: 0px 10px;
   word-wrap: break-word;
 }
-
-/* Footer Styles */
-.footer-chat {
-  background-color: #faf9f6;
-  padding: 15px;
-  border-bottom-left-radius: 15px;
-  border-bottom-right-radius: 15px;
-  border-bottom: 1px solid #dedede;
-  border-left: 1px solid #dedede;
-  border-right: 1px solid #dedede;
+.message-file-container {
+  display: block;
+  margin-top: 4px;
+  text-decoration: none;
+  color: inherit;
 }
 
-.input-area {
+.file-preview {
   display: flex;
   align-items: center;
+  background-color: #f9f9f9; /* Màu nền giống Zalo */
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  max-width: 250px;
 }
 
-.image-button,
-.file-button {
-  background-color: transparent;
-  border: none;
-  font-size: 1.5em;
-  cursor: pointer;
-  margin-right: 10px;
-}
-
-.message-input-wrapper {
-  flex-grow: 1;
-  position: relative;
+.file-info {
+  margin-left: 8px;
   display: flex;
-  align-items: center;
-  height: 40px;
-  padding: 4px;
-  border: 1px solid #ccc;
-  border-radius: 30px;
+  flex-direction: column;
+}
+
+.file-name {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
   overflow: hidden;
-  background-color: #e4e0e0;
+  text-overflow: ellipsis;
+  max-width: 180px;
 }
 
-.message-input {
-  flex-grow: 1;
-  border: none;
-  outline: none;
-  height: 30px;
-  padding: 0px 10px;
-  padding-right: 30px;
-  margin-right: 5px;
-  font-size: 1em;
-  background-color: transparent;
-}
-
-.emoji-button {
-  position: absolute;
-  right: 5px;
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: transparent;
-  border: none;
-  font-size: 1.2em;
-  cursor: pointer;
-}
-
-.send-button {
-  background-color: transparent;
-  border: none;
-  font-size: 1.2em;
-  cursor: pointer;
-  margin-left: 5px;
-}
-
-.send-button img {
-  width: 32px;
-  height: 32px;
-  vertical-align: middle;
-}
-
-.image-button img,
-.file-button img,
-.emoji-button img {
-  width: 27px;
-  height: 27px;
-  vertical-align: middle;
+.file-size {
+  font-size: 12px;
+  color: #666;
 }
 
 .user-status.online {
@@ -260,4 +213,112 @@
 }
 .user-status.offline {
   color: gray;
+}
+.footer-chat {
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-top: 1px solid #e0e0e0;
+}
+
+.input-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.message-input-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+.message-input-container {
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 8px 12px;
+  min-height: 40px;
+  max-height: 120px;
+  overflow-y: auto;
+  position: relative;
+}
+
+.selected-image-container {
+  display: flex;
+  position: relative;
+  display: flex; /* Giữ hình trên cùng hàng nếu có không gian */
+  margin: 5px 0;
+}
+
+.message-input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+  padding: 5px 0;
+  background: transparent;
+  flex-grow: 1;
+}
+
+.selected-preview {
+  position: relative; /* Để nút x định vị trong phạm vi hình */
+  display: flex; /* Giữ preview trên cùng hàng nếu đủ chỗ */
+  margin: 5px 0;
+}
+
+.selected-image {
+  display: flex;
+  width: 50px; /* Vuông giống Zalo */
+  height: 50px;
+  border-radius: 8px;
+  object-fit: contain; /* Đảm bảo hình không bị méo */
+}
+
+/* File */
+.file-preview {
+  display: flex;
+  align-items: center;
+  background-color: #f0f0f0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  max-width: 200px;
+}
+
+.file-info {
+  margin-left: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.file-name {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+  color: #333;
+}
+
+.file-size {
+  font-size: 11px;
+  color: #888;
+}
+
+.image-button,
+.file-button,
+.send-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.image-button img,
+.file-button img,
+.send-button img {
+  width: 24px;
+  height: 24px;
 }
