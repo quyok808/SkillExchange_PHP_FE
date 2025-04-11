@@ -5,6 +5,7 @@ import styles from "../Search/Search.module.css";
 import userService from "../../services/user.service";
 import Loading from "./../../components/Loading/index";
 import { debounce } from "lodash";
+import Toast from "../../utils/Toast";
 
 function SearchPage() {
   const [state, setState] = useState({
@@ -75,6 +76,7 @@ function SearchPage() {
 
   const fetchUsers = useCallback(
     async (page = 1) => {
+      console.log("fetchUsers - Called with page:", page); // Debug
       setState((prev) => ({ ...prev, loading: true, error: null }));
       const controller = new AbortController();
       const params = {
@@ -99,7 +101,9 @@ function SearchPage() {
           "Error searching users:",
           controller.signal
         );
+        console.log("fetchUsers - API response:", data); // Debug
         if (data.status === "success") {
+          console.log("fetchUsers - Updating users:", data.users); // Debug
           setState((prev) => ({
             ...prev,
             users: data.users,
@@ -108,6 +112,7 @@ function SearchPage() {
             loading: false
           }));
         } else {
+          console.log("fetchUsers - API error:", data); // Debug
           setState((prev) => ({
             ...prev,
             error: "Không thể tải dữ liệu",
@@ -116,6 +121,7 @@ function SearchPage() {
         }
       } catch (err) {
         if (!controller.signal.aborted) {
+          console.error("fetchUsers - Error:", err); // Debug
           setState((prev) => ({
             ...prev,
             error:
@@ -145,6 +151,7 @@ function SearchPage() {
     if (newPage >= 1 && newPage <= state.totalPages) fetchUsers(newPage);
   };
 
+  console.log("SearchPage - Rendering with users:", state.users); // Debug
   return (
     <>
       <div className={styles.searchContainer}>

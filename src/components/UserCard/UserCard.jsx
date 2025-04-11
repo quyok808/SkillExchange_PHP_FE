@@ -1,14 +1,19 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable react/prop-types */
 import React, { useState, useEffect } from "react";
 import styles from "./UserCard.module.css";
 import userService from "../../services/user.service";
-import CreateAppointmentForm from "../CreateAppointmentForm/CreateAppointmentForm"; // Import component
+import CreateAppointmentForm from "../CreateAppointmentForm/CreateAppointmentForm";
 import appointmentService from "../../services/appointment.service";
 import Toast from "./../../utils/Toast";
 import { useNavigate } from "react-router-dom";
 import connectionService from "../../services/connection.service";
 import socket from "../../configs/socket/socket";
+import {
+  sendConnection,
+  cleanupSocket,
+  sendCancelRequest,
+  sendRejectRequest,
+  sendAcceptRequest
+} from "./../../configs/socket/socket";
 
 function UserCard({ avatar, name, address, skills, userid }) {
   const navigate = useNavigate();
@@ -33,6 +38,30 @@ function UserCard({ avatar, name, address, skills, userid }) {
     }
   };
 
+  // Hàm fetch connection status
+  const fetchConnectionStatus = async (signal) => {
+    if (!userid) return;
+    try {
+      const connectionData = await fetchWithErrorHandling(
+        () => connectionService.checkConnectionStatus(userid),
+        "Error checking connection status:",
+        signal
+      );
+      setState((prev) => ({
+        ...prev,
+        connectionStatus: connectionData?.status || null,
+        connectionId: connectionData?.connectionId || null,
+        isReceivedRequest: connectionData?.received || false,
+        chatRoomId: connectionData?.chatRoomId || null
+      }));
+    } catch (error) {
+      if (!signal.aborted) {
+        console.error("UserCard - Error fetching connection status:", error);
+      }
+    }
+  };
+
+  // Fetch dữ liệu ban đầu
   useEffect(() => {
     const controller = new AbortController();
     const signal = controller.signal;
@@ -55,7 +84,6 @@ function UserCard({ avatar, name, address, skills, userid }) {
             signal
           )
         ]);
-
         setState((prev) => ({
           ...prev,
           connectionStatus: connectionData?.status || null,
@@ -77,15 +105,46 @@ function UserCard({ avatar, name, address, skills, userid }) {
     return () => controller.abort();
   }, [userid]);
 
-  // Các handler giữ nguyên, chỉ cập nhật state mới
+  // Socket listener để cập nhật connection status
+  useEffect(() => {
+    const handleNotify = () => {
+      const controller = new AbortController();
+      fetchConnectionStatus(controller.signal);
+      return () => controller.abort();
+    };
+
+    socket.on("receive-notify-request-connection", handleNotify);
+    socket.on("receive-cancel-notify-request-connection", handleNotify);
+    socket.on("receive-reject-notify-request-connection", handleNotify);
+    socket.on("receive-accept-notify-request-connection", handleNotify);
+
+    return () => {
+      socket.off("receive-notify-request-connection", handleNotify);
+      socket.off("receive-cancel-notify-request-connection", handleNotify);
+      socket.off("receive-reject-notify-request-connection", handleNotify);
+      socket.off("receive-accept-notify-request-connection", handleNotify);
+    };
+  }, [userid]);
+
   const handleConnect = async () => {
     try {
-      await connectionService.sendRequest(userid);
+      const response = await connectionService.sendRequest(userid);
       setState((prev) => ({
         ...prev,
         connectionStatus: "pending_sent",
         isReceivedRequest: false
       }));
+
+      if (response.status === "success") {
+        sendConnection(userid);
+
+        Toast.fire({
+          icon: "success",
+          title: `Gửi lời mời kết nối thành công!`
+        });
+      } else {
+        Toast.fire({ icon: "error", title: response.message });
+      }
     } catch (error) {
       console.error("Error sending request:", error);
     }
@@ -93,8 +152,20 @@ function UserCard({ avatar, name, address, skills, userid }) {
 
   const handleCancelRequest = async () => {
     try {
-      await connectionService.cancelRequest(userid);
+      const response = await connectionService.cancelRequest(userid);
       setState((prev) => ({ ...prev, connectionStatus: "none" }));
+
+      if (response.status === "success") {
+        Toast.fire({ icon: "success", title: "Huỷ lời mời thành công" });
+        try {
+          sendCancelRequest(userid);
+          await fetchConnectionStatus();
+        } catch (error) {
+          cleanupSocket();
+        }
+      } else {
+        Toast.fire({ icon: "error", title: response.message });
+      }
     } catch (error) {
       console.error("Error canceling request:", error);
     }
@@ -102,12 +173,26 @@ function UserCard({ avatar, name, address, skills, userid }) {
 
   const handleAcceptRequest = async () => {
     try {
-      await connectionService.acceptRequest(state.connectionId);
-      setState((prev) => ({
-        ...prev,
-        connectionStatus: "connected",
-        isReceivedRequest: false
-      }));
+      const response = await connectionService.acceptRequest(
+        state.connectionId
+      );
+      if (response.status === "success") {
+        Toast.fire({
+          icon: "success",
+          title: "Kết nối thành công, chúc bạn học thêm được kỹ năng mới!"
+        });
+        try {
+          sendAcceptRequest(userid);
+          await fetchConnectionStatus();
+          setState((prev) => ({
+            ...prev,
+            connectionStatus: "connected",
+            isReceivedRequest: false
+          }));
+        } catch (error) {
+          cleanupSocket();
+        }
+      }
     } catch (error) {
       console.error("Error accepting request:", error);
     }
@@ -115,13 +200,25 @@ function UserCard({ avatar, name, address, skills, userid }) {
 
   const handleRejectRequest = async () => {
     try {
-      await connectionService.rejectRequest(state.connectionId);
-      setState((prev) => ({
-        ...prev,
-        connectionStatus: "none",
-        isReceivedRequest: false,
-        connectionId: null
-      }));
+      const response = await connectionService.rejectRequest(
+        state.connectionId
+      );
+      if (response.status === "success") {
+        Toast.fire({ icon: "success", title: response.message });
+        setState((prev) => ({
+          ...prev,
+          connectionStatus: "none",
+          isReceivedRequest: false,
+          connectionId: null
+        }));
+
+        try {
+          sendRejectRequest(userid);
+          await fetchConnectionStatus();
+        } catch (error) {
+          cleanupSocket();
+        }
+      }
     } catch (error) {
       console.error("Error rejecting request:", error);
     }
@@ -217,7 +314,6 @@ function UserCard({ avatar, name, address, skills, userid }) {
         )}
       </div>
 
-      {/* Hiển thị modal nếu isModalOpen là true */}
       <CreateAppointmentForm
         isOpen={state.isModalOpen}
         onClose={handleCloseModal}
