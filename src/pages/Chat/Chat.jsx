@@ -13,7 +13,12 @@ import iconSend from "../../assets/ic_send.svg";
 import { IoCloseCircle } from "react-icons/io5";
 import { FaFilePdf, FaFileWord } from "react-icons/fa";
 import "./Chat.css";
-import socket, { joinChatRoom, setUserOnline, checkUserStatus, cleanupSocket } from "../../configs/socket/socket";
+import socket, {
+  joinChatRoom,
+  setUserOnline,
+  checkUserStatus,
+  cleanupSocket
+} from "../../configs/socket/socket";
 import Loading from "../../components/Loading";
 import { MdOutlineReport } from "react-icons/md";
 import reportService from "../../services/report.service";
@@ -26,9 +31,15 @@ const getFileIconAndType = (fileName) => {
       return { icon: <FaFilePdf size={24} color="#FF5733" />, type: "Tệp PDF" };
     case "doc":
     case "docx":
-      return { icon: <FaFileWord size={24} color="#2B579A" />, type: "Tệp Word" };
+      return {
+        icon: <FaFileWord size={24} color="#2B579A" />,
+        type: "Tệp Word"
+      };
     default:
-      return { icon: <FaFilePdf size={24} color="#FF5733" />, type: "Tệp không xác định" }; // Mặc định
+      return {
+        icon: <FaFilePdf size={24} color="#FF5733" />,
+        type: "Tệp không xác định"
+      }; // Mặc định
   }
 };
 
@@ -79,12 +90,16 @@ const ChatRoom = () => {
           const result = await chatService.getMessages(chatRoomId, 1, 50);
           console.log("Tin nhắn trang 1:", result.data);
           setMessages(result.data.reverse()); // Đảo ngược để hiển thị cũ -> mới
-          setHasMore(result.pagination.currentPage < result.pagination.totalPages);
+          setHasMore(
+            result.pagination.currentPage < result.pagination.totalPages
+          );
 
           socket.on("newMessage", (newMessage) => {
             console.log("Tin nhắn mới từ Socket.IO:", newMessage);
             setMessages((prevMessages) => {
-              const exists = prevMessages.some((msg) => msg.id === newMessage.id);
+              const exists = prevMessages.some(
+                (msg) => msg.id === newMessage.id
+              );
               if (!exists && newMessage.chatRoomId === chatRoomId) {
                 return [...prevMessages, newMessage];
               }
@@ -123,7 +138,9 @@ const ChatRoom = () => {
       { threshold: 0.1 }
     );
 
-    const firstMessage = chatBoxRef.current.querySelector(".message:first-child");
+    const firstMessage = chatBoxRef.current.querySelector(
+      ".message:first-child"
+    );
     if (firstMessage) observer.observe(firstMessage);
 
     observerRef.current = observer;
@@ -245,7 +262,10 @@ const ChatRoom = () => {
         setReportStatus("");
       }, 1000);
     } catch (error) {
-      Toast.fire({ icon: "error", title: "Không thể gửi báo cáo. Vui lòng thử lại sau." });
+      Toast.fire({
+        icon: "error",
+        title: "Không thể gửi báo cáo. Vui lòng thử lại sau."
+      });
     }
   };
 
@@ -262,7 +282,7 @@ const ChatRoom = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          zIndex: 1,
+          zIndex: 1
         }}
       >
         <Loading />
@@ -275,7 +295,11 @@ const ChatRoom = () => {
       <div className="chat-container">
         <div className="header-chat">
           <div className="user-info">
-            <img className="avatar" src={photos || "default"} alt="User Avatar" />
+            <img
+              className="avatar"
+              src={photos || "default"}
+              alt="User Avatar"
+            />
             <div className="user-details">
               <div className="user-name">{name || "User"}</div>
               <div className={`user-status ${onlineStatus}`}>
@@ -333,7 +357,9 @@ const ChatRoom = () => {
                           e.target.style.display = "none";
                           e.target.nextSibling.style.display = "block";
                         }}
-                        onLoad={() => console.log("Hình ảnh đã tải:", message.image)}
+                        onLoad={() =>
+                          console.log("Hình ảnh đã tải:", message.image)
+                        }
                       />
                       <span style={{ display: "none", color: "red" }}>
                         Không thể tải hình ảnh
@@ -346,15 +372,25 @@ const ChatRoom = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="message-file-container"
-                      download = {message.file.name || message.file.url.split("/").pop()}
+                      download={
+                        message.file.name || message.file.url.split("/").pop()
+                      }
                     >
                       <div className="file-preview">
                         <FaFilePdf size={32} color="#FF5733" />
                         <div className="file-info">
                           <span className="file-name">
-                          {message.file.name || message.file.url.split("/").pop() || "Tệp không tên"}
+                            {message.file.name ||
+                              message.file.url.split("/").pop() ||
+                              "Tệp không tên"}
                           </span>
-                          <span className="file-size">{getFileIconAndType(message.file.name || message.file.url).type}</span>
+                          <span className="file-size">
+                            {
+                              getFileIconAndType(
+                                message.file.name || message.file.url
+                              ).type
+                            }
+                          </span>
                         </div>
                       </div>
                     </a>
@@ -364,14 +400,18 @@ const ChatRoom = () => {
                       message.created_at || message.timestamp || Date.now()
                     ).toLocaleTimeString("vi-VN", {
                       hour: "2-digit",
-                      minute: "2-digit",
+                      minute: "2-digit"
                     })}
                   </small>
                 </div>
               </div>
             ))
           ) : (
-            <p>Không có tin nhắn nào.</p>
+            <div class="chat-intro">
+              <p class="chat-slogan">
+                Bắt đầu trao đổi – cùng mở rộng giới hạn bản thân!
+              </p>
+            </div>
           )}
         </div>
 
@@ -422,7 +462,9 @@ const ChatRoom = () => {
                         </span>
                         <span className="file-size">
                           {getFileIconAndType(selectedFile.name).type}
-                          {" - " + (selectedFile.size / 1024).toFixed(1) + " KB"}
+                          {" - " +
+                            (selectedFile.size / 1024).toFixed(1) +
+                            " KB"}
                           {/* {(selectedFile.size / 1024).toFixed(1)} KB */}
                         </span>
                       </div>

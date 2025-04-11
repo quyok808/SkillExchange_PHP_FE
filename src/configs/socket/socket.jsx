@@ -5,7 +5,7 @@ import Toast from "../../utils/Toast";
 const socket = io("http://localhost:5009", {
   reconnection: true,
   reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
+  reconnectionDelay: 1000
 });
 
 // Connection event handlers
@@ -25,7 +25,14 @@ socket.on("connect_error", (error) => {
 socket.on("receive-notify-book-appointment", (data) => {
   Toast.fire({
     icon: "info",
-    title: data.message || "Bạn có 1 cuộc hẹn mới!",
+    title: data.message || "Bạn có 1 cuộc hẹn mới!"
+  });
+});
+
+socket.on("receive-notify-request-connection", () => {
+  Toast.fire({
+    icon: "info",
+    title: `Có thông báo kết nối mới!`
   });
 });
 
@@ -35,7 +42,7 @@ socket.on("newMessage", (messageData) => {
   // Ví dụ: Hiển thị thông báo hoặc cập nhật UI
   Toast.fire({
     icon: "success",
-    title: `New message from ${messageData.userId}: ${messageData.message}`,
+    title: `New message from ${messageData.userId}: ${messageData.message}`
   });
 });
 
@@ -44,7 +51,7 @@ socket.on("messageError", (data) => {
   console.error("Message error:", data.error);
   Toast.fire({
     icon: "error",
-    title: data.error,
+    title: data.error
   });
 });
 
@@ -58,6 +65,20 @@ socket.on("onlineStatusUpdate", ({ userId, status }) => {
 socket.on("userStatusResponse", ({ userId, status }) => {
   console.log(`Status of user ${userId}: ${status}`);
   // Xử lý kết quả trong UI nếu cần
+});
+
+socket.on("receive-reject-notify-request-connection", () => {
+  Toast.fire({
+    icon: "info",
+    title: `Bạn bị từ chối kết nối! `
+  });
+});
+
+socket.on("receive-accept-notify-request-connection", () => {
+  Toast.fire({
+    icon: "success",
+    title: `Kết nối thành công, chúc bạn học thêm được kỹ năng mới!`
+  });
 });
 
 // Function to join a chat room
@@ -80,13 +101,33 @@ export const sendMessage = (chatRoomId, userId, message) => {
   socket.emit("sendMessage", { chatRoomId, userId, message });
 };
 
+export const sendConnection = (userId) => {
+  socket.emit("send-notify-request-connection", userId);
+};
+
+export const sendCancelRequest = (userId) => {
+  socket.emit("cancel-notify-request-connection", userId);
+};
+
+export const sendRejectRequest = (userId) => {
+  socket.emit("reject-notify-request-connection", userId);
+};
+
+export const sendAcceptRequest = (userId) => {
+  socket.emit("accept-notify-request-connection", userId);
+};
+
 // Function to cleanup socket listeners
 export const cleanupSocket = () => {
   socket.off("newMessage");
   socket.off("messageError");
   socket.off("onlineStatusUpdate");
   socket.off("userStatusResponse");
+  socket.off("send-notify-request-connection");
   socket.off("receive-notify-book-appointment");
+  socket.off("receive-notify-request-connection");
+  socket.off("cancel-notify-request-connection");
+  socket.off("reject-notify-request-connection");
 };
 
 export default socket;
