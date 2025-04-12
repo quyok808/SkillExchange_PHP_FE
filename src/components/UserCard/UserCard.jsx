@@ -246,8 +246,7 @@ function UserCard({ avatar, name, address, skills, userid }) {
         description: appointmentData.description
       };
       const response = await appointmentService.createAppointment(requestData);
-
-      if (response) {
+      if (response?.status) {
         socket.emit("send-notify-book-appointment", requestData.receiverId);
         Toast.fire({ icon: "success", title: response.message });
       } else {

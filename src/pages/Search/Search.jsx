@@ -151,7 +151,6 @@ function SearchPage() {
     if (newPage >= 1 && newPage <= state.totalPages) fetchUsers(newPage);
   };
 
-  console.log("SearchPage - Rendering with users:", state.users); // Debug
   return (
     <>
       <div className={styles.searchContainer}>

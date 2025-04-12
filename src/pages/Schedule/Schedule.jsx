@@ -28,10 +28,10 @@ const SchedulePage = () => {
 
   useEffect(() => {
     fetchScheduleData(); // Fetch data when the component mounts
-    socket.on("receive-notify-book-appointment", (data) => {
+    socket.on("receive-notify-book-appointment", () => {
       Toast.fire({
         icon: "info",
-        title: data.message || "Bạn có 1 cuộc hẹn mới!"
+        title: "Bạn có 1 cuộc hẹn mới!"
       });
       fetchScheduleData();
     });
