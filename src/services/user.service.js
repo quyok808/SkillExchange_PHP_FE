@@ -65,6 +65,13 @@ const getName = async (userId) => {
   return response.data;
 };
 
+const getUserById = async (userId) => {
+  const response = await axios.get(API_URL + userId, {
+    headers: auth_Header
+  });
+  return response.data;
+};
+
 const userService = {
   updateUser,
   updateUserSkills,
@@ -72,7 +79,8 @@ const userService = {
   getAvatarUser,
   getUserIDs,
   searchUserInNetwork,
-  getName
+  getName,
+  getUserById
 };
 
 export default userService;

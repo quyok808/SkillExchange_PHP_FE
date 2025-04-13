@@ -871,8 +871,8 @@ const ChatRoom = () => {
               </div>
             ))
           ) : (
-            <div class="chat-intro">
-              <p class="chat-slogan">
+            <div className="chat-intro">
+              <p className="chat-slogan">
                 Bắt đầu trao đổi – cùng mở rộng giới hạn bản thân!
               </p>
             </div>
