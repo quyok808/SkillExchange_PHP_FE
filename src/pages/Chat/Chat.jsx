@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unknown-property */
 // export default ChatRoom;
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
@@ -639,6 +640,12 @@ const ChatRoom = () => {
     );
   };
 
+  useEffect(() => {
+    if (miniChatBodyRef.current) {
+      miniChatBodyRef.current.scrollTop = miniChatBodyRef.current.scrollHeight;
+    }
+  }, [messages]);
+
   if (!user)
     return (
       <div
@@ -716,38 +723,168 @@ const ChatRoom = () => {
                   </button>
                 </div>
                 <div className="mini-chat-body" ref={miniChatBodyRef}>
-                  {messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`mini-message ${
-                        message.sender.id === (user?.id || user?._id)
-                          ? "message-right"
-                          : "message-left"
-                      }`}
-                    >
-                      {message.sender.id !== (user.id || user._id) && (
-                        <img
-                          className="avatar"
-                          src={photos || "default"}
-                          alt="Receiver Avatar"
-                        />
-                      )}
-                      <div className="message-text">{message.content}</div>
+                  {Array.isArray(messages) && messages.length > 0 ? (
+                    messages
+                      .filter((message) => message && message.id) // Lọc tin nhắn hợp lệ
+                      .map((message) => (
+                        <div
+                          key={message.id}
+                          className={`mini-message ${
+                            message.senderId === (user?.id || user?._id)
+                              ? "message-right"
+                              : "message-left"
+                          }`}
+                        >
+                          {message.senderId !== (user?.id || user?._id) && (
+                            <img
+                              className="avatar"
+                              src={photos || "default"}
+                              alt="Receiver Avatar"
+                              style={{ width: "30px", height: "30px", borderRadius: "50%", marginRight: "8px" }}
+                            />
+                          )}
+                          <div className="message-content">
+                            {(message.content || message.message) && (
+                              <div className="message-text">
+                                {message.content || message.message}
+                              </div>
+                            )}
+                            {message.image && (
+                              <div className="message-image">
+                                <img
+                                  src={message.image.url || message.image}
+                                  alt="Hình ảnh"
+                                  style={{ maxWidth: "150px", borderRadius: "8px" }}
+                                  onError={(e) => {
+                                    e.target.style.display = "none";
+                                    e.target.nextSibling.style.display = "block";
+                                  }}
+                                />
+                                <span style={{ display: "none", color: "red" }}>
+                                  Không thể tải hình ảnh
+                                </span>
+                              </div>
+                            )}
+                            {message.file && (
+                              <a
+                                href={message.file.url || message.file}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="message-file-container"
+                                download={
+                                  message.file.name || message.file.url.split("/").pop()
+                                }
+                              >
+                                <div className="file-preview">
+                                  {
+                                    getFileIconAndType(
+                                      message.file.name || message.file.url
+                                    ).icon
+                                  }
+                                  <div className="file-info">
+                                    <span className="file-name">
+                                      {message.file.name ||
+                                        message.file.url.split("/").pop() ||
+                                        "Tệp không tên"}
+                                    </span>
+                                    <span className="file-size">
+                                      {
+                                        getFileIconAndType(
+                                          message.file.name || message.file.url
+                                        ).type
+                                      }
+                                    </span>
+                                  </div>
+                                </div>
+                              </a>
+                            )}
+                            <small style={{ fontSize: "12px", color: "#5f6368" }}>
+                              {new Date(
+                                message.created_at || message.timestamp || Date.now()
+                              ).toLocaleTimeString("vi-VN", {
+                                hour: "2-digit",
+                                minute: "2-digit"
+                              })}
+                            </small>
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <div className="chat-intro">
+                      <p style={{ color: "#202124", fontSize: "14px", textAlign: "center" }}>
+                        Chưa có tin nhắn nào!
+                      </p>
                     </div>
-                  ))}
+                  )}
                 </div>
                 <div className="mini-chat-footer">
                   <input
-                    type="text"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Nhập tin nhắn..."
-                    className="mini-message-input"
+                    type="file"
+                    style={{ display: "none" }}
+                    onChange={handleImageChange}
+                    ref={imageInputRef}
+                    accept="image/*"
                   />
-                  <button className="mini-send-button" onClick={sendMessage}>
-                    <img src={iconSend} alt="Send Icon" />
-                  </button>
+                  <input
+                    type="file"
+                    style={{ display: "none" }}
+                    onChange={handleFileChange}
+                    ref={fileInputRef}
+                  />
+                  {/* <div className="input-area"> */}
+                    <button className="mini-image-button" onClick={triggerImageUpload}>
+                      <img src={iconImage} alt="Image Icon" style={{ width: "20px" }} />
+                    </button>
+                    <button className="mini-file-button" onClick={triggerFileUpload}>
+                      <img src={iconAttach} alt="Attach Icon" style={{ width: "20px" }} />
+                    </button>
+                    <div className="mini-message-input-wrapper">
+                      {/* <div className="message-input-container"> */}
+                        {selectedImage && (
+                          <div className="mini-selected-image-container" style={{ marginBottom: "8px" }}>
+                            <img
+                              src={URL.createObjectURL(selectedImage)}
+                              alt="Ảnh đã chọn"
+                              style={{ maxWidth: "50px", maxHeight: "50px", borderRadius: "4px" }}
+                            />
+                            <IoCloseCircle
+                              style={{ marginLeft: "8px", cursor: "pointer", color: "red" }}
+                              onClick={() => setSelectedImage(null)}
+                            />
+                          </div>
+                        )}
+                        {selectedFile && (
+                          <div className="mini-selected-preview" style={{ marginBottom: "8px" }}>
+                            <div className="file-preview">
+                              {getFileIconAndType(selectedFile.name).icon}
+                              <div className="file-info">
+                                <span className="file-name">{selectedFile.name || "Tệp không tên"}</span>
+                                <span className="file-size">
+                                  {getFileIconAndType(selectedFile.name).type}{" "}
+                                  {" - " + (selectedFile.size / 1024).toFixed(1) + " KB"}
+                                </span>
+                              </div>
+                            </div>
+                            <IoCloseCircle
+                              style={{ marginLeft: "8px", cursor: "pointer", color: "red" }}
+                              onClick={() => setSelectedFile(null)}
+                            />
+                          </div>
+                        )}
+                        <input
+                          type="text"
+                          value={message}
+                          onChange={(e) => setMessage(e.target.value)}
+                          onKeyDown={handleKeyDown}
+                          placeholder="Nhập tin nhắn..."
+                          className="mini-message-input"
+                        />
+                      {/* </div> */}
+                    </div>
+                    <button className="mini-send-button" onClick={sendMessage}>
+                      <img src={iconSend} alt="Send Icon" />
+                    </button>
+                  {/* </div> */}
                 </div>
               </div>
             )}
@@ -871,14 +1008,14 @@ const ChatRoom = () => {
               </div>
             ))
           ) : (
-            <div class="chat-intro">
-              <p class="chat-slogan">
+            <div className="chat-intro">
+              <p className="chat-slogan">
                 Bắt đầu trao đổi – cùng mở rộng giới hạn bản thân!
               </p>
             </div>
           )}
         </div>
-
+        {!inCall && ( 
         <div className="footer-chat">
           <div className="input-area">
             <button className="image-button" onClick={triggerImageUpload}>
@@ -955,8 +1092,9 @@ const ChatRoom = () => {
             </button>
           </div>
         </div>
+        )}
       </div>
-
+        
       <Modal
         isOpen={isModalOpen}
         onRequestClose={closeReportModal}
