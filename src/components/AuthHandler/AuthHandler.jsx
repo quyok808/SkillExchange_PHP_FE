@@ -15,7 +15,6 @@ const AuthHandler = ({ setCurrentUser, children }) => {
     const initializeUser = async () => {
       const storedUser = JSON.parse(localStorage.getItem("user"));
 
-      // Loại trừ trang reset-password (nếu cần)
       if (
         !storedUser &&
         (location.pathname.includes("/reset-password") ||
@@ -25,7 +24,6 @@ const AuthHandler = ({ setCurrentUser, children }) => {
         return;
       }
 
-      // Nếu không có storedUser, yêu cầu đăng nhập (trừ reset-password)
       if (!storedUser && !location.pathname.includes("/reset-password")) {
         console.log("Không có storedUser, chuyển hướng về /");
         Toast.fire({
@@ -37,7 +35,6 @@ const AuthHandler = ({ setCurrentUser, children }) => {
         return;
       }
 
-      // Nếu không có storedUser và không phải trang chủ, điều hướng về "/"
       if (!storedUser) {
         Toast.fire({
           icon: "error",
@@ -48,15 +45,11 @@ const AuthHandler = ({ setCurrentUser, children }) => {
         return;
       }
 
-      // Logic xử lý khi có storedUser
       try {
         const userResponse = await authService.getCurrentUser();
         const user = userResponse?.data?.user || storedUser;
-        // console.log("Dữ liệu người dùng:", userResponse);
         setCurrentUser(user);
-        setUserOnline(user.id || user._id);
-
-        // Kiểm tra và xử lý report warning
+        setUserOnline(user.id);
 
         const warning = await reportService.getWarningReport();
         if (warning?.data?.totalReports > 0) {
@@ -65,7 +58,6 @@ const AuthHandler = ({ setCurrentUser, children }) => {
             title:
               "Bạn bị cảnh cáo vì vi phạm chính sách cộng đồng, nếu tái phạm nhiều lần tài khoản của bạn sẽ bị khóa!"
           });
-          // Cập nhật trạng thái report từ "Warning" thành "Warned"
           const reports = warning?.data?.reports || [];
           console.log("reports: ", warning);
           for (const report of reports) {
@@ -86,17 +78,10 @@ const AuthHandler = ({ setCurrentUser, children }) => {
         console.error("Error verifying user:", error);
         localStorage.removeItem("user");
         setCurrentUser(null);
-        navigate("/"); // Điều hướng về trang chủ nếu xác minh thất bại
+        navigate("/");
       }
-      setIsLoading(false); // Đánh dấu là đã load xong
+      setIsLoading(false);
     };
-
-    socket.on("connect", () => {
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      if (storedUser) {
-        setUserOnline(storedUser.id || storedUser._id);
-      }
-    });
 
     socket.on("receive-notify-book-appointment", (data) => {
       Toast.fire({
@@ -108,10 +93,10 @@ const AuthHandler = ({ setCurrentUser, children }) => {
     initializeUser();
 
     return () => {
-      socket.off("connect");
+      // socket.off("connect");
       socket.off("receive-notify-book-appointment");
     };
-  }, [navigate, setCurrentUser, location.pathname]); // Dependency array có location.pathname
+  }, [navigate, setCurrentUser, location.pathname]);
 
   if (isLoading) {
     return (
@@ -134,7 +119,7 @@ const AuthHandler = ({ setCurrentUser, children }) => {
     );
   }
 
-  return children; // Render Routes khi đã load xong
+  return children;
 };
 
 export default AuthHandler;

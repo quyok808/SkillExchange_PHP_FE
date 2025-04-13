@@ -9,6 +9,7 @@ import Avatar from "../Avatar";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Swal from "sweetalert2";
 import reportService from "../../services/report.service";
+import socket, { setUserOnline } from "../../configs/socket/socket";
 
 function RegisterButton() {
   const [showModal, setShowModal] = useState(false);
@@ -130,13 +131,15 @@ function RegisterButton() {
         loginEmail,
         loginPassword,
         rememberMe
-      ); // Truyền rememberMe
+      );
       if (response.status === "success") {
         const userInfo = await authService.getCurrentUser();
         setUser(userInfo?.data?.user);
         toggleModal();
         setLoginEmail("");
         setLoginPassword("");
+        socket.connect();
+        setUserOnline(userInfo?.data?.user?.id);
         Toast.fire({
           icon: "success",
           title: "Đăng nhập thành công!"
@@ -209,8 +212,9 @@ function RegisterButton() {
       if (result.isConfirmed) {
         await authService.logout();
         setUser(null);
-        localStorage.removeItem("user"); // Xóa token khi đăng xuất
+        localStorage.removeItem("user");
         sessionStorage.removeItem("user");
+        socket.disconnect();
         navigate("/");
         Toast.fire({
           icon: "success",
@@ -377,6 +381,42 @@ function RegisterButton() {
                       Đăng kí ngay!
                     </a>
                   </p>
+                  <p style={{ textAlign: "center", marginBottom: "5px" }}>
+                    Bạn quên mật khẩu?{" "}
+                    <a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        sendEmailGetPass();
+                      }}
+                      style={{
+                        color: "#00bcd4",
+                        fontWeight: "bold",
+                        pointerEvents: isLoading ? "none" : "auto", // Vô hiệu hóa click khi loading
+                        opacity: isLoading ? 0.6 : 1 // Làm mờ nút khi loading
+                      }}
+                    >
+                      {isLoading ? "Đang gửi..." : "Lấy lại mật khẩu!"}
+                    </a>
+                  </p>
+                  {isLoading && (
+                    <div
+                      style={{
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        width: "100vw",
+                        height: "100vh",
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        zIndex: 1000
+                      }}
+                    >
+                      <Loading />
+                    </div>
+                  )}
                   <button
                     type="submit"
                     style={{

@@ -21,7 +21,6 @@ const CreateAppointmentForm = ({ isOpen, onClose, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Validate dữ liệu nếu cần thiết
     if (!startTime || !endTime || !description) {
       Toast.fire({
         icon: "error",
@@ -30,24 +29,19 @@ const CreateAppointmentForm = ({ isOpen, onClose, onSubmit }) => {
       return;
     }
 
-    // Gọi hàm onSubmit (truyền từ component cha) để xử lý dữ liệu
     onSubmit({ startTime, endTime, description });
     reset();
-    // Đóng modal sau khi submit
     onClose();
   };
 
   return (
     <div className={styles.modal}>
       {" "}
-      {/* Thêm class 'modal' để định dạng CSS */}
       <div className={styles.modalContent}>
         {" "}
-        {/* Thêm class 'modal-content' để định dạng CSS */}
         <span className={styles.close} onClick={onClose}>
           ×
         </span>{" "}
-        {/* Thêm class 'close' để định dạng CSS */}
         <h2>Đặt Lịch Hẹn</h2>
         <form onSubmit={handleSubmit}>
           <div>
