@@ -16,6 +16,10 @@
   min-height: 250px;
 }
 
+.card:hover {
+  cursor: pointer;
+}
+
 .cardAvatar {
   width: 60px;
   height: 60px;
@@ -55,6 +59,10 @@
 .cardLearn {
   margin-bottom: 10px;
   color: #333;
+  white-space: nowrap; /* Không cho xuống dòng */
+  overflow: hidden; /* Ẩn phần vượt ra ngoài */
+  text-overflow: ellipsis; /* Thêm dấu "..." nếu nội dung bị cắt */
+  max-width: 100%; /* Đảm bảo không vượt quá chiều rộng thẻ cha */
 }
 
 .cardMajor span {

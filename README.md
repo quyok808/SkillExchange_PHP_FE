@@ -1,28 +1,17 @@
-# Skill exchange Front-end
+# OnlyA SkillExchange Front-end ReactJs
 
-    Skill-Exchange_FE/
-    ├─ .gitignore
-    ├─ eslint.config.js
-    ├─ index.html
-    ├─ package-lock.json
-    ├─ package.json
-    ├─ public/
-    │  ├─ skill_exchange_logo.svg
-    │  └─ vite.svg
-    ├─ README.md
-    ├─ src/
-    │  ├─ App.css
-    │  ├─ App.jsx
-    │  ├─ assets/
-    │  │  └─ react.svg
-    │  ├─ components/
-    │  ├─ context/
-    │  ├─ hooks/
-    │  ├─ index.css
-    │  ├─ main.jsx
-    │  ├─ pages/
-    │  ├─ services/
-    │  └─ utils/
-    └─ vite.config.js
-    
-**1. Home page**
+1. Cài đặt
+
+    - Clone dự án về.
+  
+    - Chạy lệnh `npm install`.
+
+3. Chạy Frontend
+
+    - Chạy lệnh `npm run dev`
+  
+    - Truy cập theo link hiển thị ra.
+
+  # OnlyA SkillExchange Backend Laravel
+
+  [OnlyA SkillExchange Backend Laravel](https://github.com/quyok808/OnlyA_SkillExchange.git)

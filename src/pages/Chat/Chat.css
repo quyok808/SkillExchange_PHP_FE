@@ -589,7 +589,7 @@
 }
 
 .mini-message .message-text {
-  max-width: 80%;
+  max-width: 100%;
   padding: 8px 12px;
   border-radius: 12px;
   background-color: #f1f3f4; /* Xám nhạt cho tin nhắn nhận */
@@ -610,16 +610,109 @@
   padding: 12px 16px;
   border-top: 1px solid #dadce0;
   background-color: #fff;
+  flex-wrap: wrap; /* Cho phép wrap nếu nội dung quá dài */
+}
+.mini-chat-footer > * {
+  margin-right: 8px; /* Khoảng cách giữa các phần tử */
+}
+.mini-chat-footer > :last-child {
+  margin-right: 0; /* Bỏ margin cho phần tử cuối */
+}
+.mini-message-input-wrapper {
+  flex: 1; /* Chiếm toàn bộ không gian còn lại */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Nút chọn hình ảnh và tệp */
+.mini-image-button,
+.mini-file-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px; /* Padding nhẹ để dễ nhấn */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mini-image-button img,
+.file-button img {
+  width: 20px;
+  height: 20px;
+}
+
+.mini-image-button:hover img,
+.mini-file-button:hover img {
+  opacity: 0.8;
 }
 
 .mini-message-input {
-  flex: 1;
   padding: 8px 12px;
   border: 1px solid #dadce0;
   border-radius: 20px;
   outline: none;
   font-size: 14px;
   color: #202124;
+  width: 100%; /* Đảm bảo input chiếm hết chiều rộng */
+  box-sizing: border-box;
+}
+
+/* Bản xem trước hình ảnh */
+.mini-selected-image-container {
+  display: flex;
+  align-items: center;
+  background: #f1f3f4;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.mini-selected-image-container img {
+  max-width: 50px;
+  max-height: 50px;
+  border-radius: 4px;
+}
+
+.mini-selected-image-container .remove-image {
+  margin-left: 8px;
+  cursor: pointer;
+  color: red;
+}
+
+/* Bản xem trước tệp */
+.mini-selected-preview {
+  display: flex;
+  align-items: center;
+  background: #f1f3f4;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.mini-selected-preview .file-preview {
+  display: flex;
+  align-items: center;
+}
+
+.mini-selected-preview .file-info {
+  margin-left: 8px;
+}
+
+.mini-selected-preview .file-name {
+  font-size: 14px;
+  color: #202124;
+}
+
+.mini-selected-preview .file-size {
+  font-size: 12px;
+  color: #5f6368;
+}
+
+.mini-selected-preview .remove-preview {
+  margin-left: 8px;
+  cursor: pointer;
+  color: red;
 }
 
 .mini-message-input:focus {
@@ -630,7 +723,10 @@
   background: none;
   border: none;
   cursor: pointer;
-  margin-left: 10px;
+  padding: 6px; /* Padding đồng bộ với image-button và file-button */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .mini-send-button img {
@@ -641,6 +737,7 @@
 .mini-send-button:hover img {
   opacity: 0.8;
 }
+
 
 .chat-intro {
   background-color: #f0f4ff;

@@ -15,7 +15,7 @@ import {
   sendAcceptRequest
 } from "./../../configs/socket/socket";
 
-function UserCard({ avatar, name, address, skills, userid }) {
+function UserCard({ avatar, name, address, skills, userid, openCard }) {
   const navigate = useNavigate();
   const [state, setState] = useState({
     chatRoomId: null,
@@ -260,8 +260,25 @@ function UserCard({ avatar, name, address, skills, userid }) {
   };
 
   const isConnected = state.userIds.includes(userid);
+  const handleInfoClick = () => {
+    openCard(
+      userid,
+      handleChat,
+      state.connectionStatus,
+      handleAcceptRequest,
+      handleCancelRequest,
+      handleRejectRequest,
+      handleOpenModal,
+      handleConnect
+    );
+  };
+
+  const handleButtonClick = (e, action) => {
+    e.stopPropagation();
+    action();
+  };
   return (
-    <div className={styles.card}>
+    <div className={styles.card} onClick={handleInfoClick}>
       <div className={styles.cardTop}>
         <img src={avatar} alt={name} className={styles.cardAvatar} />
       </div>
@@ -277,17 +294,23 @@ function UserCard({ avatar, name, address, skills, userid }) {
 
         {state.connectionStatus === "connected" ? (
           <div className={styles.chat}>
-            <button className={styles.connectButton} onClick={handleOpenModal}>
+            <button
+              className={styles.connectButton}
+              onClick={(e) => handleButtonClick(e, handleOpenModal)}
+            >
               Đặt lịch
             </button>
-            <button className={styles.connectButton} onClick={handleChat}>
+            <button
+              className={styles.connectButton}
+              onClick={(e) => handleButtonClick(e, handleChat)}
+            >
               Nhắn tin
             </button>
           </div>
         ) : state.connectionStatus === "pending_sent" ? (
           <button
             className={styles.connectButton}
-            onClick={handleCancelRequest}
+            onClick={(e) => handleButtonClick(e, handleCancelRequest)}
           >
             Hủy yêu cầu
           </button>
@@ -295,19 +318,22 @@ function UserCard({ avatar, name, address, skills, userid }) {
           <div className={styles.chat}>
             <button
               className={styles.connectButton}
-              onClick={handleAcceptRequest}
+              onClick={(e) => handleButtonClick(e, handleAcceptRequest)}
             >
               Chấp nhận
             </button>
             <button
               className={styles.connectButton}
-              onClick={handleRejectRequest}
+              onClick={(e) => handleButtonClick(e, handleRejectRequest)}
             >
               Từ chối
             </button>
           </div>
         ) : (
-          <button className={styles.connectButton} onClick={handleConnect}>
+          <button
+            className={styles.connectButton}
+            onClick={(e) => handleButtonClick(e, handleConnect)}
+          >
             Kết nối
           </button>
         )}
@@ -315,8 +341,8 @@ function UserCard({ avatar, name, address, skills, userid }) {
 
       <CreateAppointmentForm
         isOpen={state.isModalOpen}
-        onClose={handleCloseModal}
-        onSubmit={handleAppointmentSubmit}
+        onClose={(e) => handleButtonClick(e, handleCloseModal)}
+        onSubmit={(e) => handleButtonClick(e, handleAppointmentSubmit)}
       />
     </div>
   );

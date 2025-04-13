@@ -6,6 +6,7 @@ import userService from "../../services/user.service";
 import Loading from "./../../components/Loading/index";
 import { debounce } from "lodash";
 import Toast from "../../utils/Toast";
+import ProfilePanel from "../../components/InfomationCard/infomationCard";
 
 function SearchPage() {
   const [state, setState] = useState({
@@ -22,6 +23,14 @@ function SearchPage() {
     totalPages: 1
   });
   const itemsPerPage = 10;
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [chatHandler, setChatHandler] = useState(null);
+  const [connectionStatus, setConnectionStatus] = useState(null);
+  const [handleOpenModal, sethandleOpenModal] = useState(null);
+  const [handleRejectRequest, sethandleRejectRequest] = useState(null);
+  const [handleAcceptRequest, sethandleAcceptRequest] = useState(null);
+  const [handleCancelRequest, sethandleCancelRequest] = useState(null);
+  const [handleOnConnect, sethandleOnConnect] = useState(null);
 
   const fetchWithErrorHandling = async (fetchFn, errorMessage, signal) => {
     try {
@@ -101,9 +110,7 @@ function SearchPage() {
           "Error searching users:",
           controller.signal
         );
-        console.log("fetchUsers - API response:", data); // Debug
         if (data.status === "success") {
-          console.log("fetchUsers - Updating users:", data.users); // Debug
           setState((prev) => ({
             ...prev,
             users: data.users,
@@ -149,6 +156,29 @@ function SearchPage() {
   const handleSearch = () => debouncedFetchUsers(1);
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= state.totalPages) fetchUsers(newPage);
+  };
+
+  const handleOpenProfile = async (
+    userId,
+    chatHandler,
+    status,
+    accR,
+    canR,
+    RejR,
+    openModal,
+    onConnect
+  ) => {
+    const response = await userService.getUserById(userId);
+    if (response) {
+      setSelectedUser(response.data);
+      setChatHandler(() => chatHandler);
+      setConnectionStatus(status);
+      sethandleAcceptRequest(() => accR);
+      sethandleCancelRequest(() => canR);
+      sethandleRejectRequest(() => RejR);
+      sethandleOpenModal(() => openModal);
+      sethandleOnConnect(() => onConnect);
+    }
   };
 
   return (
@@ -229,8 +259,22 @@ function SearchPage() {
                   address={user.address || "Chưa cập nhật địa chỉ"}
                   avatar={user.photo || "default-avatar-url"}
                   userid={user._id}
+                  openCard={handleOpenProfile}
                 />
               ))}
+              {selectedUser && (
+                <ProfilePanel
+                  user={selectedUser}
+                  onClose={() => setSelectedUser(null)}
+                  onChat={chatHandler}
+                  connectionStatus={connectionStatus}
+                  onCancelRequest={handleCancelRequest}
+                  onAcceptRequest={handleAcceptRequest}
+                  onRejectRequest={handleRejectRequest}
+                  onBookAppointment={handleOpenModal}
+                  onConnect={handleOnConnect}
+                />
+              )}
             </div>
             <div className={styles.pagination}>
               <button

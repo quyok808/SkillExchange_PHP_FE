@@ -4,6 +4,7 @@ import UserCard from "../../components/UserCard";
 import styles from "../Search/Search.module.css";
 import userService from "../../services/user.service";
 import Loading from "./../../components/Loading/index";
+import ProfilePanel from "../../components/InfomationCard/infomationCard";
 
 function SearchPage() {
   const [skillName, setSkillName] = useState("");
@@ -11,7 +12,6 @@ function SearchPage() {
   const [email, setEmail] = useState(""); // Thêm state cho email
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [users, setUsers] = useState([]);
-  // const [photos, setPhotos] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [provinces, setProvinces] = useState([]);
@@ -19,6 +19,7 @@ function SearchPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
     const fetchProvinces = async () => {
@@ -32,26 +33,6 @@ function SearchPage() {
     };
     fetchProvinces();
   }, []);
-
-  // useEffect(() => {
-  //   const fetchPhotos = async () => {
-  //     const photoPromises = users.map(async (user) => {
-  //       const avatar = await userService.getAvatarUser(user._id);
-  //       return { id: user._id, avatar };
-  //     });
-
-  //     const photoResults = await Promise.all(photoPromises);
-  //     const photoMap = photoResults.reduce((acc, { id, avatar }) => {
-  //       acc[id] = avatar;
-  //       return acc;
-  //     }, {});
-  //     setPhotos(photoMap);
-  //   };
-
-  //   if (users.length > 0) {
-  //     fetchPhotos();
-  //   }
-  // }, [users]);
 
   const fetchUsers = async (page = 1) => {
     setLoading(true);
@@ -103,6 +84,13 @@ function SearchPage() {
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
       fetchUsers(newPage);
+    }
+  };
+
+  const handleOpenProfile = async (userId) => {
+    const response = await userService.getUserById(userId);
+    if (response) {
+      setSelectedUser(response.data);
     }
   };
 
@@ -173,8 +161,13 @@ function SearchPage() {
                   address={user.address || "Chưa cập nhật địa chỉ"}
                   avatar={user.photo || "default-avatar-url"}
                   userid={user._id}
+                  openCard={handleOpenProfile}
                 />
               ))}
+              <ProfilePanel
+                user={selectedUser}
+                onClose={() => setSelectedUser(null)}
+              />
             </div>
             <div className={styles.pagination}>
               <button
