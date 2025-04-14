@@ -349,7 +349,7 @@ const ChatRoom = () => {
       setShowChat(false);
     } catch (error) {
       console.error("Error starting video call:", error);
-      socket.off("callUser", { to: userid, offer });
+      socket.off("callUser");
     }
   };
 
@@ -740,7 +740,12 @@ const ChatRoom = () => {
                               className="avatar"
                               src={photos || "default"}
                               alt="Receiver Avatar"
-                              style={{ width: "30px", height: "30px", borderRadius: "50%", marginRight: "8px" }}
+                              style={{
+                                width: "30px",
+                                height: "30px",
+                                borderRadius: "50%",
+                                marginRight: "8px"
+                              }}
                             />
                           )}
                           <div className="message-content">
@@ -754,10 +759,14 @@ const ChatRoom = () => {
                                 <img
                                   src={message.image.url || message.image}
                                   alt="Hình ảnh"
-                                  style={{ maxWidth: "150px", borderRadius: "8px" }}
+                                  style={{
+                                    maxWidth: "150px",
+                                    borderRadius: "8px"
+                                  }}
                                   onError={(e) => {
                                     e.target.style.display = "none";
-                                    e.target.nextSibling.style.display = "block";
+                                    e.target.nextSibling.style.display =
+                                      "block";
                                   }}
                                 />
                                 <span style={{ display: "none", color: "red" }}>
@@ -772,7 +781,8 @@ const ChatRoom = () => {
                                 rel="noopener noreferrer"
                                 className="message-file-container"
                                 download={
-                                  message.file.name || message.file.url.split("/").pop()
+                                  message.file.name ||
+                                  message.file.url.split("/").pop()
                                 }
                               >
                                 <div className="file-preview">
@@ -798,9 +808,13 @@ const ChatRoom = () => {
                                 </div>
                               </a>
                             )}
-                            <small style={{ fontSize: "12px", color: "#5f6368" }}>
+                            <small
+                              style={{ fontSize: "12px", color: "#5f6368" }}
+                            >
                               {new Date(
-                                message.created_at || message.timestamp || Date.now()
+                                message.created_at ||
+                                  message.timestamp ||
+                                  Date.now()
                               ).toLocaleTimeString("vi-VN", {
                                 hour: "2-digit",
                                 minute: "2-digit"
@@ -811,7 +825,13 @@ const ChatRoom = () => {
                       ))
                   ) : (
                     <div className="chat-intro">
-                      <p style={{ color: "#202124", fontSize: "14px", textAlign: "center" }}>
+                      <p
+                        style={{
+                          color: "#202124",
+                          fontSize: "14px",
+                          textAlign: "center"
+                        }}
+                      >
                         Chưa có tin nhắn nào!
                       </p>
                     </div>
@@ -832,58 +852,94 @@ const ChatRoom = () => {
                     ref={fileInputRef}
                   />
                   {/* <div className="input-area"> */}
-                    <button className="mini-image-button" onClick={triggerImageUpload}>
-                      <img src={iconImage} alt="Image Icon" style={{ width: "20px" }} />
-                    </button>
-                    <button className="mini-file-button" onClick={triggerFileUpload}>
-                      <img src={iconAttach} alt="Attach Icon" style={{ width: "20px" }} />
-                    </button>
-                    <div className="mini-message-input-wrapper">
-                      {/* <div className="message-input-container"> */}
-                        {selectedImage && (
-                          <div className="mini-selected-image-container" style={{ marginBottom: "8px" }}>
-                            <img
-                              src={URL.createObjectURL(selectedImage)}
-                              alt="Ảnh đã chọn"
-                              style={{ maxWidth: "50px", maxHeight: "50px", borderRadius: "4px" }}
-                            />
-                            <IoCloseCircle
-                              style={{ marginLeft: "8px", cursor: "pointer", color: "red" }}
-                              onClick={() => setSelectedImage(null)}
-                            />
-                          </div>
-                        )}
-                        {selectedFile && (
-                          <div className="mini-selected-preview" style={{ marginBottom: "8px" }}>
-                            <div className="file-preview">
-                              {getFileIconAndType(selectedFile.name).icon}
-                              <div className="file-info">
-                                <span className="file-name">{selectedFile.name || "Tệp không tên"}</span>
-                                <span className="file-size">
-                                  {getFileIconAndType(selectedFile.name).type}{" "}
-                                  {" - " + (selectedFile.size / 1024).toFixed(1) + " KB"}
-                                </span>
-                              </div>
-                            </div>
-                            <IoCloseCircle
-                              style={{ marginLeft: "8px", cursor: "pointer", color: "red" }}
-                              onClick={() => setSelectedFile(null)}
-                            />
-                          </div>
-                        )}
-                        <input
-                          type="text"
-                          value={message}
-                          onChange={(e) => setMessage(e.target.value)}
-                          onKeyDown={handleKeyDown}
-                          placeholder="Nhập tin nhắn..."
-                          className="mini-message-input"
+                  <button
+                    className="mini-image-button"
+                    onClick={triggerImageUpload}
+                  >
+                    <img
+                      src={iconImage}
+                      alt="Image Icon"
+                      style={{ width: "20px" }}
+                    />
+                  </button>
+                  <button
+                    className="mini-file-button"
+                    onClick={triggerFileUpload}
+                  >
+                    <img
+                      src={iconAttach}
+                      alt="Attach Icon"
+                      style={{ width: "20px" }}
+                    />
+                  </button>
+                  <div className="mini-message-input-wrapper">
+                    {/* <div className="message-input-container"> */}
+                    {selectedImage && (
+                      <div
+                        className="mini-selected-image-container"
+                        style={{ marginBottom: "8px" }}
+                      >
+                        <img
+                          src={URL.createObjectURL(selectedImage)}
+                          alt="Ảnh đã chọn"
+                          style={{
+                            maxWidth: "50px",
+                            maxHeight: "50px",
+                            borderRadius: "4px"
+                          }}
                         />
-                      {/* </div> */}
-                    </div>
-                    <button className="mini-send-button" onClick={sendMessage}>
-                      <img src={iconSend} alt="Send Icon" />
-                    </button>
+                        <IoCloseCircle
+                          style={{
+                            marginLeft: "8px",
+                            cursor: "pointer",
+                            color: "red"
+                          }}
+                          onClick={() => setSelectedImage(null)}
+                        />
+                      </div>
+                    )}
+                    {selectedFile && (
+                      <div
+                        className="mini-selected-preview"
+                        style={{ marginBottom: "8px" }}
+                      >
+                        <div className="file-preview">
+                          {getFileIconAndType(selectedFile.name).icon}
+                          <div className="file-info">
+                            <span className="file-name">
+                              {selectedFile.name || "Tệp không tên"}
+                            </span>
+                            <span className="file-size">
+                              {getFileIconAndType(selectedFile.name).type}{" "}
+                              {" - " +
+                                (selectedFile.size / 1024).toFixed(1) +
+                                " KB"}
+                            </span>
+                          </div>
+                        </div>
+                        <IoCloseCircle
+                          style={{
+                            marginLeft: "8px",
+                            cursor: "pointer",
+                            color: "red"
+                          }}
+                          onClick={() => setSelectedFile(null)}
+                        />
+                      </div>
+                    )}
+                    <input
+                      type="text"
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Nhập tin nhắn..."
+                      className="mini-message-input"
+                    />
+                    {/* </div> */}
+                  </div>
+                  <button className="mini-send-button" onClick={sendMessage}>
+                    <img src={iconSend} alt="Send Icon" />
+                  </button>
                   {/* </div> */}
                 </div>
               </div>
@@ -1015,86 +1071,86 @@ const ChatRoom = () => {
             </div>
           )}
         </div>
-        {!inCall && ( 
-        <div className="footer-chat">
-          <div className="input-area">
-            <button className="image-button" onClick={triggerImageUpload}>
-              <img src={iconImage} alt="Image Icon" />
-            </button>
-            <button className="file-button" onClick={triggerFileUpload}>
-              <img src={iconAttach} alt="Attach Icon" />
-            </button>
+        {!inCall && (
+          <div className="footer-chat">
+            <div className="input-area">
+              <button className="image-button" onClick={triggerImageUpload}>
+                <img src={iconImage} alt="Image Icon" />
+              </button>
+              <button className="file-button" onClick={triggerFileUpload}>
+                <img src={iconAttach} alt="Attach Icon" />
+              </button>
 
-            <input
-              type="file"
-              style={{ display: "none" }}
-              onChange={handleImageChange}
-              ref={imageInputRef}
-              accept="image/*"
-            />
-            <input
-              type="file"
-              style={{ display: "none" }}
-              onChange={handleFileChange}
-              ref={fileInputRef}
-            />
-            <div className="message-input-wrapper">
-              <div className="message-input-container">
-                {selectedImage && (
-                  <div className="selected-image-container">
-                    <img
-                      src={URL.createObjectURL(selectedImage)}
-                      alt="Ảnh đã chọn"
-                      className="selected-image"
-                    />
-                    <IoCloseCircle
-                      className="remove-image"
-                      onClick={() => setSelectedImage(null)}
-                    />
-                  </div>
-                )}
-                {selectedFile && (
-                  <div className="selected-preview">
-                    <div className="file-preview">
-                      <FaFilePdf size={24} color="#FF5733" />
-                      <div className="file-info">
-                        <span className="file-name">
-                          {selectedFile.name || "Tệp không tên"}
-                        </span>
-                        <span className="file-size">
-                          {getFileIconAndType(selectedFile.name).type}
-                          {" - " +
-                            (selectedFile.size / 1024).toFixed(1) +
-                            " KB"}
-                          {/* {(selectedFile.size / 1024).toFixed(1)} KB */}
-                        </span>
-                      </div>
+              <input
+                type="file"
+                style={{ display: "none" }}
+                onChange={handleImageChange}
+                ref={imageInputRef}
+                accept="image/*"
+              />
+              <input
+                type="file"
+                style={{ display: "none" }}
+                onChange={handleFileChange}
+                ref={fileInputRef}
+              />
+              <div className="message-input-wrapper">
+                <div className="message-input-container">
+                  {selectedImage && (
+                    <div className="selected-image-container">
+                      <img
+                        src={URL.createObjectURL(selectedImage)}
+                        alt="Ảnh đã chọn"
+                        className="selected-image"
+                      />
+                      <IoCloseCircle
+                        className="remove-image"
+                        onClick={() => setSelectedImage(null)}
+                      />
                     </div>
-                    <IoCloseCircle
-                      className="remove-preview"
-                      onClick={() => setSelectedFile(null)}
-                    />
-                  </div>
-                )}
-                <input
-                  type="text"
-                  className="message-input"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Nhập tin nhắn..."
-                  onKeyDown={handleKeyDown}
-                />
+                  )}
+                  {selectedFile && (
+                    <div className="selected-preview">
+                      <div className="file-preview">
+                        <FaFilePdf size={24} color="#FF5733" />
+                        <div className="file-info">
+                          <span className="file-name">
+                            {selectedFile.name || "Tệp không tên"}
+                          </span>
+                          <span className="file-size">
+                            {getFileIconAndType(selectedFile.name).type}
+                            {" - " +
+                              (selectedFile.size / 1024).toFixed(1) +
+                              " KB"}
+                            {/* {(selectedFile.size / 1024).toFixed(1)} KB */}
+                          </span>
+                        </div>
+                      </div>
+                      <IoCloseCircle
+                        className="remove-preview"
+                        onClick={() => setSelectedFile(null)}
+                      />
+                    </div>
+                  )}
+                  <input
+                    type="text"
+                    className="message-input"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Nhập tin nhắn..."
+                    onKeyDown={handleKeyDown}
+                  />
+                </div>
               </div>
-            </div>
 
-            <button className="send-button" onClick={sendMessage}>
-              <img src={iconSend} alt="Send Icon" />
-            </button>
+              <button className="send-button" onClick={sendMessage}>
+                <img src={iconSend} alt="Send Icon" />
+              </button>
+            </div>
           </div>
-        </div>
         )}
       </div>
-        
+
       <Modal
         isOpen={isModalOpen}
         onRequestClose={closeReportModal}
