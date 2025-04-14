@@ -1,9 +1,8 @@
-
 // export default chatService;
 import axios from "axios";
 import authHeader from "./auth-header";
 
-const API_URL = "http://localhost:5008/api/"; // Đảm bảo port khớp với Laravel
+const API_URL = `${import.meta.env.VITE_API_URL}/`; // Đảm bảo port khớp với Laravel
 
 const chatService = {
   // Lấy danh sách tin nhắn theo chatRoomId
@@ -11,7 +10,7 @@ const chatService = {
     try {
       const response = await axios.get(`${API_URL}messages/${chatRoomId}`, {
         headers: authHeader(),
-        params: { page, limit }, // Hỗ trợ phân trang nếu cần
+        params: { page, limit } // Hỗ trợ phân trang nếu cần
       });
 
       // Kiểm tra cấu trúc response
@@ -22,14 +21,17 @@ const chatService = {
           pagination: {
             currentPage: response.data.data.current_page,
             totalPages: response.data.data.last_page,
-            totalItems: response.data.data.total,
-          },
+            totalItems: response.data.data.total
+          }
         };
       } else {
-        throw new Error(response.data.message || "Lỗi không xác định từ server");
+        throw new Error(
+          response.data.message || "Lỗi không xác định từ server"
+        );
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message || "Lỗi mạng";
+      const errorMessage =
+        error.response?.data?.message || error.message || "Lỗi mạng";
       console.error("Lỗi khi lấy tin nhắn:", errorMessage);
       throw new Error(errorMessage);
     }
@@ -41,18 +43,20 @@ const chatService = {
       const response = await axios.post(`${API_URL}messages/send`, formData, {
         headers: {
           ...authHeader(),
-          "Content-Type": "multipart/form-data", // Gửi FormData
-        },
+          "Content-Type": "multipart/form-data" // Gửi FormData
+        }
       });
 
       // Kiểm tra cấu trúc response
       if (response.data.status === "success") {
         return {
           status: "success",
-          data: response.data.data, // Trả về thông tin tin nhắn vừa gửi
+          data: response.data.data // Trả về thông tin tin nhắn vừa gửi
         };
       } else {
-        throw new Error(response.data.message || "Lỗi không xác định từ server");
+        throw new Error(
+          response.data.message || "Lỗi không xác định từ server"
+        );
       }
     } catch (error) {
       const errorMessage =
@@ -70,16 +74,18 @@ const chatService = {
         url: `${API_URL}${url}`,
         headers: {
           ...authHeader(),
-          ...customHeaders,
+          ...customHeaders
         },
-        data,
+        data
       };
       const response = await axios(config);
 
       if (response.data.status === "success") {
         return response.data; // Trả về dữ liệu từ server
       } else {
-        throw new Error(response.data.message || "Lỗi không xác định từ server");
+        throw new Error(
+          response.data.message || "Lỗi không xác định từ server"
+        );
       }
     } catch (error) {
       const errorMessage =
@@ -87,7 +93,7 @@ const chatService = {
       console.error(`Lỗi request ${method} ${url}:`, errorMessage);
       throw new Error(errorMessage);
     }
-  },
+  }
 };
 
 export default chatService;

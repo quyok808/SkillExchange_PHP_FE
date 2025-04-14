@@ -2,7 +2,7 @@ import io from "socket.io-client";
 import Toast from "../../utils/Toast";
 
 // Initialize socket connection
-const socket = io("http://localhost:5009", {
+const socket = io(`${import.meta.env.VITE_SOCKET_URL}`, {
   reconnection: true,
   reconnectionAttempts: 5,
   reconnectionDelay: 1000

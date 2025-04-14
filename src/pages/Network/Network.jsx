@@ -20,6 +20,13 @@ function SearchPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(10);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [chatHandler, setChatHandler] = useState(null);
+  const [connectionStatus, setConnectionStatus] = useState(null);
+  const [handleOpenModal, sethandleOpenModal] = useState(null);
+  const [handleRejectRequest, sethandleRejectRequest] = useState(null);
+  const [handleAcceptRequest, sethandleAcceptRequest] = useState(null);
+  const [handleCancelRequest, sethandleCancelRequest] = useState(null);
+  const [handleOnConnect, sethandleOnConnect] = useState(null);
 
   useEffect(() => {
     const fetchProvinces = async () => {
@@ -87,10 +94,26 @@ function SearchPage() {
     }
   };
 
-  const handleOpenProfile = async (userId) => {
+  const handleOpenProfile = async (
+    userId,
+    chatHandler,
+    status,
+    accR,
+    canR,
+    RejR,
+    openModal,
+    onConnect
+  ) => {
     const response = await userService.getUserById(userId);
     if (response) {
       setSelectedUser(response.data);
+      setChatHandler(() => chatHandler);
+      setConnectionStatus(status);
+      sethandleAcceptRequest(() => accR);
+      sethandleCancelRequest(() => canR);
+      sethandleRejectRequest(() => RejR);
+      sethandleOpenModal(() => openModal);
+      sethandleOnConnect(() => onConnect);
     }
   };
 
@@ -164,10 +187,19 @@ function SearchPage() {
                   openCard={handleOpenProfile}
                 />
               ))}
-              <ProfilePanel
-                user={selectedUser}
-                onClose={() => setSelectedUser(null)}
-              />
+              {selectedUser && (
+                <ProfilePanel
+                  user={selectedUser}
+                  onClose={() => setSelectedUser(null)}
+                  onChat={chatHandler}
+                  connectionStatus={connectionStatus}
+                  onCancelRequest={handleCancelRequest}
+                  onAcceptRequest={handleAcceptRequest}
+                  onRejectRequest={handleRejectRequest}
+                  onBookAppointment={handleOpenModal}
+                  onConnect={handleOnConnect}
+                />
+              )}
             </div>
             <div className={styles.pagination}>
               <button

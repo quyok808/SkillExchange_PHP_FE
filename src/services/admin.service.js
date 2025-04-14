@@ -1,7 +1,7 @@
 import axios from "axios"; // Hoặc fetch API
 import authHeader from "./auth-header";
 
-const API_URL = "http://localhost:5008/api/admins/"; // Thay đổi URL này
+const API_URL = `${import.meta.env.VITE_API_URL}/admins/`; // Thay đổi URL này
 
 const getAllUsers = async () => {
   try {

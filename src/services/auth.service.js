@@ -3,7 +3,7 @@
 import axios from "axios"; // Hoặc fetch API
 import authHeader from "./auth-header";
 
-const API_URL = "http://localhost:5008/api/users/"; // Thay đổi URL này
+const API_URL = `${import.meta.env.VITE_API_URL}/users/`; // Thay đổi URL này
 
 const getCurrentAddress = () => {
   return new Promise((resolve, reject) => {

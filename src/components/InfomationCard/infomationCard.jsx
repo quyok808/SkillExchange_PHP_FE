@@ -37,7 +37,7 @@ const ProfilePanel = ({
     setIsDragging(false);
 
     // Nếu kéo xuống đủ xa (hơn 100px) thì đóng panel
-    if (currentY > 100) {
+    if (currentY > 200) {
       onClose();
       setCurrentY(0);
     }
@@ -66,7 +66,7 @@ const ProfilePanel = ({
     if (!isDragging) return;
     setIsDragging(false);
 
-    if (currentY > 100) {
+    if (currentY > 200) {
       onClose();
       setCurrentY(0);
     } else if (currentY < -50) {
@@ -257,7 +257,10 @@ const ProfilePanel = ({
               <>
                 <button
                   className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center"
-                  onClick={onBookAppointment}
+                  onClick={() => {
+                    onBookAppointment();
+                    onClose();
+                  }}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -277,7 +280,10 @@ const ProfilePanel = ({
                 </button>
                 <button
                   className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center"
-                  onClick={onChat}
+                  onClick={() => {
+                    onChat();
+                    onClose();
+                  }}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -299,7 +305,10 @@ const ProfilePanel = ({
             ) : connectionStatus === "pending_sent" ? (
               <button
                 className="flex-1 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors"
-                onClick={onCancelRequest}
+                onClick={() => {
+                  onCancelRequest();
+                  onClose();
+                }}
               >
                 Hủy yêu cầu
               </button>
@@ -307,13 +316,19 @@ const ProfilePanel = ({
               <>
                 <button
                   className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
-                  onClick={onAcceptRequest}
+                  onClick={() => {
+                    onAcceptRequest();
+                    onClose();
+                  }}
                 >
                   Chấp nhận
                 </button>
                 <button
                   className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
-                  onClick={onRejectRequest}
+                  onClick={() => {
+                    onRejectRequest();
+                    onClose();
+                  }}
                 >
                   Từ chối
                 </button>
@@ -321,7 +336,10 @@ const ProfilePanel = ({
             ) : (
               <button
                 className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-                onClick={onConnect}
+                onClick={() => {
+                  onConnect();
+                  onClose();
+                }}
               >
                 Kết nối
               </button>
