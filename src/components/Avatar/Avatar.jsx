@@ -29,7 +29,13 @@ function Avatar({ user, onLogout }) {
       .getAvatar()
       .then((response) => {
         if (response && response.data) {
-          setAvatar(response.data.image); // Dùng trực tiếp Base64
+          // setAvatar(response.data.image); // Dùng trực tiếp Base64
+          setAvatar(
+            response.data.image.replace(
+              "http://192.168.1.8:5008/storage",
+              "/storage"
+            )
+          );
         }
       })
       .catch((error) => {

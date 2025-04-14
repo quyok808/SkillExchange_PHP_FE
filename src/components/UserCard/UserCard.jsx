@@ -280,7 +280,11 @@ function UserCard({ avatar, name, address, skills, userid, openCard }) {
   return (
     <div className={styles.card} onClick={handleInfoClick}>
       <div className={styles.cardTop}>
-        <img src={avatar} alt={name} className={styles.cardAvatar} />
+        <img
+          src={avatar.replace("http://192.168.1.8:5008/storage", "/storage")}
+          alt={name}
+          className={styles.cardAvatar}
+        />
       </div>
 
       <div className={styles.cardContent}>

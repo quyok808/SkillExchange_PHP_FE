@@ -2,13 +2,14 @@
 import axios from "axios";
 import authHeader from "./auth-header";
 
-const API_URL = `${import.meta.env.VITE_API_URL}/`; // Đảm bảo port khớp với Laravel
+// const API_URL = `${import.meta.env.VITE_API_URL}/`;
+const API_URL = `/api/messages`;
 
 const chatService = {
   // Lấy danh sách tin nhắn theo chatRoomId
   getMessages: async (chatRoomId, page = 1, limit = 50) => {
     try {
-      const response = await axios.get(`${API_URL}messages/${chatRoomId}`, {
+      const response = await axios.get(`${API_URL}/${chatRoomId}`, {
         headers: authHeader(),
         params: { page, limit } // Hỗ trợ phân trang nếu cần
       });
@@ -40,7 +41,7 @@ const chatService = {
   // Gửi tin nhắn (hỗ trợ text, image, file qua FormData)
   sendMessage: async (formData) => {
     try {
-      const response = await axios.post(`${API_URL}messages/send`, formData, {
+      const response = await axios.post(`${API_URL}/send`, formData, {
         headers: {
           ...authHeader(),
           "Content-Type": "multipart/form-data" // Gửi FormData

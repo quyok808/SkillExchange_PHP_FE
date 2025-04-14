@@ -623,7 +623,10 @@ const ChatRoom = () => {
         <div className="call-notification-content">
           <img
             className="caller-avatar"
-            src={photos || "default"}
+            src={
+              photos.replace("http://192.168.1.8:5008/storage", "/storage") ||
+              "default"
+            }
             alt="Caller Avatar"
           />
           <p>{`${name || "User"} đang gọi bạn...`}</p>
@@ -738,7 +741,12 @@ const ChatRoom = () => {
                           {message.senderId !== (user?.id || user?._id) && (
                             <img
                               className="avatar"
-                              src={photos || "default"}
+                              src={
+                                photos.replace(
+                                  "http://192.168.1.8:5008/storage",
+                                  "/storage"
+                                ) || "default"
+                              }
                               alt="Receiver Avatar"
                               style={{
                                 width: "30px",
@@ -757,7 +765,16 @@ const ChatRoom = () => {
                             {message.image && (
                               <div className="message-image">
                                 <img
-                                  src={message.image.url || message.image}
+                                  src={
+                                    message.image.url.replace(
+                                      "http://192.168.1.8:5008/storage",
+                                      "/storage"
+                                    ) ||
+                                    message.image.replace(
+                                      "http://192.168.1.8:5008/storage",
+                                      "/storage"
+                                    )
+                                  }
                                   alt="Hình ảnh"
                                   style={{
                                     maxWidth: "150px",
@@ -954,7 +971,10 @@ const ChatRoom = () => {
           <div className="user-info">
             <img
               className="avatar"
-              src={photos || "default"}
+              src={
+                photos.replace("http://192.168.1.8:5008/storage", "/storage") ||
+                "default"
+              }
               alt="User Avatar"
             />
             <div className="user-details">
@@ -993,7 +1013,12 @@ const ChatRoom = () => {
                 {message.senderId !== (user.id || user._id) && (
                   <img
                     className="avatar"
-                    src={photos || "default"}
+                    src={
+                      photos.replace(
+                        "http://192.168.1.8:5008/storage",
+                        "/storage"
+                      ) || "default"
+                    }
                     alt="Receiver Avatar"
                   />
                 )}
@@ -1006,7 +1031,16 @@ const ChatRoom = () => {
                   {message.image && (
                     <div className="message-image">
                       <img
-                        src={message.image.url || message.image}
+                        src={
+                          message.image.url.replace(
+                            "http://192.168.1.8:5008/storage",
+                            "/storage"
+                          ) ||
+                          message.image.replace(
+                            "http://192.168.1.8:5008/storage",
+                            "/storage"
+                          )
+                        }
                         alt="Hình ảnh"
                         style={{ maxWidth: "200px", borderRadius: "8px" }}
                         onError={(e) => {

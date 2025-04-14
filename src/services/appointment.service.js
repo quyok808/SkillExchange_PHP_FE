@@ -1,7 +1,8 @@
 import axios from "axios"; // Hoặc fetch API
 import authHeader from "./auth-header";
 
-const API_URL = `${import.meta.env.VITE_API_URL}/appointments/`; // Thay đổi URL này
+// const API_URL = `${import.meta.env.VITE_API_URL}/appointments/`;
+const API_URL = `/api/appointments/`;
 
 const getAppointments = async () => {
   const response = await axios.get(API_URL, {

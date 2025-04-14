@@ -1,7 +1,8 @@
 import axios from "axios"; // Hoặc fetch API
 import authHeader from "./auth-header";
 
-const API_URL = `${import.meta.env.VITE_API_URL}/admins/`; // Thay đổi URL này
+// const API_URL = `${import.meta.env.VITE_API_URL}/admins/`;
+const API_URL = `/api/admins/`;
 
 const getAllUsers = async () => {
   try {
