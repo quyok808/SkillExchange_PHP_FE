@@ -121,7 +121,10 @@ const ProfilePanel = ({
           <div className="flex flex-col items-center">
             <div className="relative">
               <img
-                src={user.photo}
+                src={user.photo.replace(
+                  `${import.meta.env.VITE_API_URL}/storage`,
+                  "/storage"
+                )}
                 alt="avatar"
                 className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg"
               />

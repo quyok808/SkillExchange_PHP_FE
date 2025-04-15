@@ -624,8 +624,10 @@ const ChatRoom = () => {
           <img
             className="caller-avatar"
             src={
-              photos.replace("http://192.168.1.8:5008/storage", "/storage") ||
-              "default"
+              photos.replace(
+                `${import.meta.env.VITE_API_URL}/storage`,
+                "/storage"
+              ) || "default"
             }
             alt="Caller Avatar"
           />
@@ -743,7 +745,7 @@ const ChatRoom = () => {
                               className="avatar"
                               src={
                                 photos.replace(
-                                  "http://192.168.1.8:5008/storage",
+                                  `${import.meta.env.VITE_API_URL}/storage`,
                                   "/storage"
                                 ) || "default"
                               }
@@ -767,11 +769,11 @@ const ChatRoom = () => {
                                 <img
                                   src={
                                     message.image.url.replace(
-                                      "http://192.168.1.8:5008/storage",
+                                      `${import.meta.env.VITE_API_URL}/storage`,
                                       "/storage"
                                     ) ||
                                     message.image.replace(
-                                      "http://192.168.1.8:5008/storage",
+                                      `${import.meta.env.VITE_API_URL}/storage`,
                                       "/storage"
                                     )
                                   }
@@ -972,8 +974,10 @@ const ChatRoom = () => {
             <img
               className="avatar"
               src={
-                photos.replace("http://192.168.1.8:5008/storage", "/storage") ||
-                "default"
+                photos.replace(
+                  `${import.meta.env.VITE_API_URL}/storage`,
+                  "/storage"
+                ) || "default"
               }
               alt="User Avatar"
             />
@@ -1015,7 +1019,7 @@ const ChatRoom = () => {
                     className="avatar"
                     src={
                       photos.replace(
-                        "http://192.168.1.8:5008/storage",
+                        `${import.meta.env.VITE_API_URL}/storage`,
                         "/storage"
                       ) || "default"
                     }
@@ -1033,11 +1037,11 @@ const ChatRoom = () => {
                       <img
                         src={
                           message.image.url.replace(
-                            "http://192.168.1.8:5008/storage",
+                            `${import.meta.env.VITE_API_URL}/storage`,
                             "/storage"
                           ) ||
                           message.image.replace(
-                            "http://192.168.1.8:5008/storage",
+                            `${import.meta.env.VITE_API_URL}/storage`,
                             "/storage"
                           )
                         }

@@ -281,7 +281,10 @@ function UserCard({ avatar, name, address, skills, userid, openCard }) {
     <div className={styles.card} onClick={handleInfoClick}>
       <div className={styles.cardTop}>
         <img
-          src={avatar.replace("http://192.168.1.8:5008/storage", "/storage")}
+          src={avatar.replace(
+            `${import.meta.env.VITE_API_URL}/storage`,
+            "/storage"
+          )}
           alt={name}
           className={styles.cardAvatar}
         />
@@ -345,8 +348,8 @@ function UserCard({ avatar, name, address, skills, userid, openCard }) {
 
       <CreateAppointmentForm
         isOpen={state.isModalOpen}
-        onClose={(e) => handleButtonClick(e, handleCloseModal)}
-        onSubmit={(e) => handleButtonClick(e, handleAppointmentSubmit)}
+        onClose={handleCloseModal}
+        onSubmit={handleAppointmentSubmit}
       />
     </div>
   );

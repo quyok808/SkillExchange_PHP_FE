@@ -297,7 +297,10 @@ function Profile() {
           <div className="relative w-36 h-36 mx-auto mb-5">
             <img
               src={
-                avatar ||
+                avatar.replace(
+                  `${import.meta.env.VITE_API_URL}/storage`,
+                  "/storage"
+                ) ||
                 "https://i.pinimg.com/736x/b1/b5/6b/b1b56b9e9b21ad32cff1028882cb8245.jpg"
               }
               alt="Ảnh đại diện"

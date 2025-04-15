@@ -32,7 +32,7 @@ function Avatar({ user, onLogout }) {
           // setAvatar(response.data.image); // Dùng trực tiếp Base64
           setAvatar(
             response.data.image.replace(
-              "http://192.168.1.8:5008/storage",
+              `${import.meta.env.VITE_API_URL}/storage`,
               "/storage"
             )
           );
